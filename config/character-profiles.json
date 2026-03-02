@@ -1,0 +1,223 @@
+{
+  "meta": {
+    "name": "Character Profile System",
+    "version": "1.0",
+    "description": "Schema and examples for character-aware enhancement"
+  },
+
+  "schema": {
+    "id": "string - unique identifier",
+    "name": "string - character name",
+    "voice_id": "string - ElevenLabs voice ID (optional)",
+    "personality": {
+      "traits": ["array of personality traits"],
+      "speaking_style": "description of how they speak",
+      "emotional_range": "low|medium|high",
+      "default_mood": "their baseline emotional state"
+    },
+    "speech_patterns": {
+      "sentence_length": "short|medium|long|varied",
+      "formality": "casual|neutral|formal",
+      "quirks": ["speech quirks or habits"]
+    },
+    "tag_preferences": {
+      "preferred": ["tags that fit this character"],
+      "avoided": ["tags that don't fit"],
+      "signature_sounds": ["their characteristic non-verbals"]
+    }
+  },
+
+  "preset_archetypes": {
+    "nervous_character": {
+      "id": "archetype_nervous",
+      "name": "Nervous/Anxious Character",
+      "personality": {
+        "traits": ["anxious", "overthinking", "hesitant", "self-doubting"],
+        "speaking_style": "Lots of pauses, trailing off, second-guessing",
+        "emotional_range": "medium",
+        "default_mood": "worried"
+      },
+      "speech_patterns": {
+        "sentence_length": "short",
+        "formality": "casual",
+        "quirks": ["starts sentences then restarts", "asks for validation"]
+      },
+      "tag_preferences": {
+        "preferred": ["nervously", "hesitant", "gulps", "cautiously", "worried", "anxious"],
+        "avoided": ["confidently", "boldly", "laughs harder", "excited"],
+        "signature_sounds": ["gulps", "clears throat", "nervous laugh"]
+      }
+    },
+
+    "confident_leader": {
+      "id": "archetype_confident",
+      "name": "Confident Leader",
+      "personality": {
+        "traits": ["confident", "decisive", "commanding", "assured"],
+        "speaking_style": "Direct, clear, authoritative but not harsh",
+        "emotional_range": "medium",
+        "default_mood": "composed"
+      },
+      "speech_patterns": {
+        "sentence_length": "varied",
+        "formality": "neutral",
+        "quirks": ["declarative statements", "rare hesitation"]
+      },
+      "tag_preferences": {
+        "preferred": ["confidently", "matter-of-factly", "firmly", "determined", "calmly"],
+        "avoided": ["nervously", "hesitant", "trembling", "worried"],
+        "signature_sounds": ["sighs", "exhales"]
+      }
+    },
+
+    "comedic_relief": {
+      "id": "archetype_comic",
+      "name": "Comic Relief Character",
+      "personality": {
+        "traits": ["funny", "sarcastic", "quick-witted", "self-deprecating"],
+        "speaking_style": "Punchy timing, lots of reactions, expressive",
+        "emotional_range": "high",
+        "default_mood": "amused"
+      },
+      "speech_patterns": {
+        "sentence_length": "short",
+        "formality": "casual",
+        "quirks": ["comedic pauses", "exaggerated reactions", "asides"]
+      },
+      "tag_preferences": {
+        "preferred": ["sarcastically", "deadpan", "laughs", "chuckles", "snorts", "dramatically"],
+        "avoided": ["seriously", "gravely", "solemnly"],
+        "signature_sounds": ["laughs", "snorts", "sighs dramatically"]
+      }
+    },
+
+    "wise_mentor": {
+      "id": "archetype_mentor",
+      "name": "Wise Mentor",
+      "personality": {
+        "traits": ["wise", "patient", "thoughtful", "kind"],
+        "speaking_style": "Measured pace, meaningful pauses, gentle delivery",
+        "emotional_range": "low",
+        "default_mood": "contemplative"
+      },
+      "speech_patterns": {
+        "sentence_length": "medium",
+        "formality": "neutral",
+        "quirks": ["rhetorical questions", "meaningful pauses"]
+      },
+      "tag_preferences": {
+        "preferred": ["thoughtfully", "gently", "wisely", "softly", "kindly", "patiently"],
+        "avoided": ["excitedly", "angrily", "impatiently"],
+        "signature_sounds": ["sighs", "chuckles warmly", "hums"]
+      }
+    },
+
+    "villain_antagonist": {
+      "id": "archetype_villain",
+      "name": "Villain/Antagonist",
+      "personality": {
+        "traits": ["menacing", "calculating", "confident", "cruel"],
+        "speaking_style": "Controlled, deliberate, enjoys intimidation",
+        "emotional_range": "medium",
+        "default_mood": "amused superiority"
+      },
+      "speech_patterns": {
+        "sentence_length": "varied",
+        "formality": "formal",
+        "quirks": ["dramatic pauses", "rhetorical questions", "condescending tone"]
+      },
+      "tag_preferences": {
+        "preferred": ["coldly", "menacingly", "amused", "mockingly", "whispers", "slowly"],
+        "avoided": ["cheerfully", "nervously", "warmly"],
+        "signature_sounds": ["chuckles darkly", "sighs contentedly"]
+      }
+    },
+
+    "romantic_lead": {
+      "id": "archetype_romantic",
+      "name": "Romantic Lead",
+      "personality": {
+        "traits": ["passionate", "vulnerable", "sincere", "emotional"],
+        "speaking_style": "Expressive, heartfelt, varies with emotional state",
+        "emotional_range": "high",
+        "default_mood": "hopeful"
+      },
+      "speech_patterns": {
+        "sentence_length": "varied",
+        "formality": "casual",
+        "quirks": ["trailing off when emotional", "breathless moments"]
+      },
+      "tag_preferences": {
+        "preferred": ["softly", "tenderly", "breathlessly", "longing", "whispers", "passionately"],
+        "avoided": ["coldly", "angrily", "sarcastically"],
+        "signature_sounds": ["sighs", "inhales deeply", "laughs softly"]
+      }
+    },
+
+    "action_hero": {
+      "id": "archetype_action",
+      "name": "Action Hero",
+      "personality": {
+        "traits": ["brave", "determined", "quick-thinking", "resilient"],
+        "speaking_style": "Short, punchy, urgent when needed",
+        "emotional_range": "medium",
+        "default_mood": "alert"
+      },
+      "speech_patterns": {
+        "sentence_length": "short",
+        "formality": "casual",
+        "quirks": ["commands", "quick decisions"]
+      },
+      "tag_preferences": {
+        "preferred": ["urgently", "determined", "shouting", "firmly", "quickly"],
+        "avoided": ["hesitantly", "timidly", "slowly"],
+        "signature_sounds": ["grunts", "exhales sharply"]
+      }
+    },
+
+    "child_innocent": {
+      "id": "archetype_child",
+      "name": "Child/Innocent Character",
+      "personality": {
+        "traits": ["curious", "innocent", "enthusiastic", "honest"],
+        "speaking_style": "Simple, direct, full of wonder",
+        "emotional_range": "high",
+        "default_mood": "curious"
+      },
+      "speech_patterns": {
+        "sentence_length": "short",
+        "formality": "casual",
+        "quirks": ["lots of questions", "simple observations"]
+      },
+      "tag_preferences": {
+        "preferred": ["excitedly", "curiously", "innocently", "hopefully", "confused"],
+        "avoided": ["cynically", "sarcastically", "wearily"],
+        "signature_sounds": ["giggles", "gasps", "laughs"]
+      }
+    }
+  },
+
+  "example_custom_character": {
+    "id": "char_detective_mills",
+    "name": "Detective Sarah Mills",
+    "voice_id": "london_english_voice_id",
+    "personality": {
+      "traits": ["weary", "cynical", "perceptive", "secretly caring"],
+      "speaking_style": "Dry, understated, occasional dark humor",
+      "emotional_range": "low",
+      "default_mood": "tired skepticism"
+    },
+    "speech_patterns": {
+      "sentence_length": "short",
+      "formality": "casual",
+      "quirks": ["rhetorical questions to self", "muttering observations", "dry one-liners"]
+    },
+    "tag_preferences": {
+      "preferred": ["sighs", "muttering", "dryly", "skeptically", "tiredly", "matter-of-factly"],
+      "avoided": ["excitedly", "cheerfully", "giggling"],
+      "signature_sounds": ["sighs", "exhales", "scoffs"]
+    }
+  },
+
+  "enhancement_instruction_template": "Character: {{name}}\nPersonality: {{personality.traits}}\nSpeaking style: {{personality.speaking_style}}\nDefault mood: {{personality.default_mood}}\nPreferred tags: {{tag_preferences.preferred}}\nAvoid tags: {{tag_preferences.avoided}}\nSignature sounds: {{tag_preferences.signature_sounds}}\n\nWhen enhancing dialogue for this character, prioritize their preferred tags and avoid tags that don't fit their personality. Include their signature sounds at natural moments."
+}

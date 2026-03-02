@@ -1,0 +1,1335 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TTS Platform</title>
+    <style>
+        :root {
+            --bg-primary: #0f0f0f;
+            --bg-secondary: #1a1a1a;
+            --bg-tertiary: #252525;
+            --text-primary: #ffffff;
+            --text-secondary: #a0a0a0;
+            --accent: #10a37f;
+            --accent-hover: #0d8a6c;
+            --border: #333333;
+            --danger: #ef4444;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+        }
+        
+        /* Header */
+        header {
+            background: var(--bg-secondary);
+            border-bottom: 1px solid var(--border);
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--accent);
+        }
+        
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+        }
+        
+        .nav-links a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+        
+        .nav-links a:hover, .nav-links a.active {
+            color: var(--text-primary);
+        }
+        
+        /* Main Layout */
+        .container {
+            display: grid;
+            grid-template-columns: 300px 1fr 350px;
+            min-height: calc(100vh - 60px);
+        }
+        
+        /* Sidebar - Voices */
+        .sidebar {
+            background: var(--bg-secondary);
+            border-right: 1px solid var(--border);
+            padding: 1.5rem;
+            overflow-y: auto;
+        }
+        
+        .sidebar h2 {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            margin-bottom: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        
+        .search-box {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-size: 0.875rem;
+            margin-bottom: 1rem;
+        }
+        
+        .search-box:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+        
+        .voice-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+        
+        .voice-item {
+            padding: 0.75rem 1rem;
+            background: var(--bg-tertiary);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 2px solid transparent;
+        }
+        
+        .voice-item:hover {
+            background: var(--bg-primary);
+        }
+        
+        .voice-item.selected {
+            border-color: var(--accent);
+        }
+        
+        .voice-name {
+            font-weight: 500;
+            margin-bottom: 0.25rem;
+        }
+        
+        .voice-category {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+        }
+        
+        /* Main Content */
+        .main-content {
+            padding: 2rem;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .editor-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .editor-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+        
+        .editor-header h1 {
+            font-size: 1.25rem;
+        }
+        
+        .mode-tabs {
+            display: flex;
+            gap: 0.5rem;
+        }
+        
+        .mode-tab {
+            padding: 0.5rem 1rem;
+            background: transparent;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .mode-tab:hover {
+            border-color: var(--text-secondary);
+        }
+        
+        .mode-tab.active {
+            background: var(--accent);
+            border-color: var(--accent);
+            color: white;
+        }
+        
+        .text-editor {
+            flex: 1;
+            min-height: 300px;
+            padding: 1.5rem;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            color: var(--text-primary);
+            font-size: 1rem;
+            line-height: 1.6;
+            resize: none;
+            font-family: inherit;
+        }
+        
+        .text-editor:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+        
+        .text-editor::placeholder {
+            color: var(--text-secondary);
+        }
+        
+        /* Character Count */
+        .char-count {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 0.5rem;
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+        }
+        
+        /* Action Buttons */
+        .actions {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+        
+        button {
+            font-family: inherit;
+        }
+        
+        .btn {
+            padding: 0.875rem 1.5rem;
+            border-radius: 8px;
+            font-size: 0.875rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: none;
+        }
+        
+        .btn-primary {
+            background: var(--accent);
+            color: white;
+            flex: 1;
+        }
+        
+        .btn-primary:hover {
+            background: var(--accent-hover);
+        }
+        
+        .btn-primary:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .btn-secondary {
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+            border: 1px solid var(--border);
+        }
+        
+        .btn-secondary:hover {
+            background: var(--bg-secondary);
+        }
+        
+        /* Right Panel - Settings */
+        .settings-panel {
+            background: var(--bg-secondary);
+            border-left: 1px solid var(--border);
+            padding: 1.5rem;
+            overflow-y: auto;
+        }
+        
+        .settings-panel h2 {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            margin-bottom: 1.5rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        
+        .setting-group {
+            margin-bottom: 1.5rem;
+        }
+        
+        .setting-label {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.5rem;
+        }
+        
+        .setting-label span {
+            font-size: 0.875rem;
+        }
+        
+        .setting-value {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+        }
+        
+        input[type="range"] {
+            width: 100%;
+            height: 4px;
+            background: var(--bg-tertiary);
+            border-radius: 2px;
+            appearance: none;
+            cursor: pointer;
+        }
+        
+        input[type="range"]::-webkit-slider-thumb {
+            appearance: none;
+            width: 16px;
+            height: 16px;
+            background: var(--accent);
+            border-radius: 50%;
+        }
+        
+        select {
+            width: 100%;
+            padding: 0.75rem;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-size: 0.875rem;
+            cursor: pointer;
+        }
+        
+        select:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+        
+        /* Enhancement Section */
+        .enhancement-section {
+            border-top: 1px solid var(--border);
+            padding-top: 1.5rem;
+            margin-top: 1rem;
+        }
+        
+        .mode-selector {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+        
+        .mode-option {
+            padding: 0.75rem;
+            background: var(--bg-tertiary);
+            border: 2px solid transparent;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .mode-option:hover {
+            background: var(--bg-primary);
+        }
+        
+        .mode-option.selected {
+            border-color: var(--accent);
+            background: rgba(16, 163, 127, 0.1);
+        }
+        
+        .mode-title {
+            font-weight: 600;
+            font-size: 0.875rem;
+            margin-bottom: 0.25rem;
+        }
+        
+        .mode-desc {
+            font-size: 0.7rem;
+            color: var(--text-secondary);
+        }
+        
+        .mode-option.selected .mode-title {
+            color: var(--accent);
+        }
+        
+        .toggle-container {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 1rem;
+        }
+        
+        .toggle {
+            position: relative;
+            width: 44px;
+            height: 24px;
+            background: var(--bg-tertiary);
+            border-radius: 12px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        
+        .toggle.active {
+            background: var(--accent);
+        }
+        
+        .toggle::after {
+            content: '';
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            width: 20px;
+            height: 20px;
+            background: white;
+            border-radius: 50%;
+            transition: transform 0.2s;
+        }
+        
+        .toggle.active::after {
+            transform: translateX(20px);
+        }
+        
+        /* Audio Tags Reference */
+        .tag-reference {
+            background: var(--bg-primary);
+            border-radius: 8px;
+            padding: 1rem;
+            margin-top: 1rem;
+        }
+        
+        .tag-reference h3 {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            margin-bottom: 0.75rem;
+            text-transform: uppercase;
+        }
+        
+        .tag-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+        
+        .tag {
+            padding: 0.25rem 0.5rem;
+            background: var(--bg-tertiary);
+            border-radius: 4px;
+            font-size: 0.75rem;
+            color: var(--accent);
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        
+        .tag:hover {
+            background: var(--accent);
+            color: white;
+        }
+        
+        /* Audio Player */
+        .audio-player {
+            background: var(--bg-tertiary);
+            border-radius: 8px;
+            padding: 1rem;
+            margin-top: 1rem;
+            display: none;
+        }
+        
+        .audio-player.visible {
+            display: block;
+        }
+        
+        audio {
+            width: 100%;
+        }
+        
+        /* Loading State */
+        .loading {
+            display: none;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            color: var(--text-secondary);
+        }
+        
+        .loading.visible {
+            display: flex;
+        }
+        
+        .spinner {
+            width: 20px;
+            height: 20px;
+            border: 2px solid var(--border);
+            border-top-color: var(--accent);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        /* Toast Notifications */
+        .toast {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            padding: 1rem 1.5rem;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            display: none;
+            align-items: center;
+            gap: 0.75rem;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            z-index: 1000;
+        }
+        
+        .toast.visible {
+            display: flex;
+        }
+        
+        .toast.error {
+            border-color: var(--danger);
+        }
+        
+        /* Responsive */
+        @media (max-width: 1200px) {
+            .container {
+                grid-template-columns: 1fr;
+            }
+            
+            .sidebar, .settings-panel {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="logo">TTS Platform</div>
+        <nav class="nav-links">
+            <a href="#" class="active">Speech Synthesis</a>
+            <a href="#dialogue">Multi-Speaker</a>
+            <a href="#tutorial">Tutorial</a>
+        </nav>
+    </header>
+
+    <div class="container">
+        <!-- Voices Sidebar -->
+        <aside class="sidebar">
+            <h2>Voices</h2>
+            <input type="text" class="search-box" id="voiceSearch" placeholder="Search voices...">
+            <div class="voice-list" id="voiceList">
+                <div class="loading visible" id="voicesLoading">
+                    <div class="spinner"></div>
+                    <span>Loading voices...</span>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Editor -->
+        <main class="main-content">
+            <div class="editor-container">
+                <div class="editor-header">
+                    <h1>Text to Speech</h1>
+                    <div class="mode-tabs">
+                        <button class="mode-tab active" data-mode="single">Single</button>
+                        <button class="mode-tab" data-mode="dialogue">Dialogue</button>
+                    </div>
+                </div>
+                
+                <textarea 
+                    class="text-editor" 
+                    id="textInput"
+                    placeholder="Enter text here... Use [audio tags] for emotions and effects.
+
+Examples:
+[sighs] I never thought it would come to this.
+[excited] This is amazing news!
+[whispering] Don't tell anyone, but...
+[laughs] That's hilarious!"
+                ></textarea>
+                
+                <div class="char-count">
+                    <span id="charCount">0 characters</span>
+                    <span>Max: 5,000</span>
+                </div>
+                
+                <div class="actions">
+                    <button class="btn btn-secondary" id="enhanceBtn">
+                        ✨ Enhance
+                    </button>
+                    <button class="btn btn-primary" id="generateBtn" disabled>
+                        Generate Speech
+                    </button>
+                </div>
+                
+                <div class="loading" id="generateLoading">
+                    <div class="spinner"></div>
+                    <span>Generating audio...</span>
+                </div>
+                
+                <div class="audio-player" id="audioPlayer">
+                    <audio controls id="audioElement"></audio>
+                </div>
+            </div>
+        </main>
+
+        <!-- Settings Panel -->
+        <aside class="settings-panel">
+            <h2>Voice Settings</h2>
+            
+            <div class="setting-group">
+                <div class="setting-label">
+                    <span>Model</span>
+                </div>
+                <select id="modelSelect">
+                    <option value="eleven_v3">Eleven V3 (Recommended)</option>
+                    <option value="eleven_turbo_v2_5">Eleven Turbo V2.5</option>
+                    <option value="eleven_multilingual_v2">Multilingual V2</option>
+                </select>
+            </div>
+            
+            <div class="setting-group">
+                <div class="setting-label">
+                    <span>Stability</span>
+                    <span class="setting-value" id="stabilityValue">50%</span>
+                </div>
+                <input type="range" id="stability" min="0" max="100" value="50">
+                <div style="display: flex; justify-content: space-between; font-size: 0.7rem; color: var(--text-secondary); margin-top: 0.25rem;">
+                    <span>Creative</span>
+                    <span>Robust</span>
+                </div>
+            </div>
+            
+            <div class="setting-group">
+                <div class="setting-label">
+                    <span>Similarity</span>
+                    <span class="setting-value" id="similarityValue">75%</span>
+                </div>
+                <input type="range" id="similarity" min="0" max="100" value="75">
+            </div>
+            
+            <div class="setting-group">
+                <div class="setting-label">
+                    <span>Style</span>
+                    <span class="setting-value" id="styleValue">0%</span>
+                </div>
+                <input type="range" id="style" min="0" max="100" value="0">
+            </div>
+            
+            <!-- Enhancement Settings -->
+            <div class="enhancement-section">
+                <h2>Enhancement Mode</h2>
+                
+                <div class="setting-group">
+                    <div class="mode-selector" id="modeSelector">
+                        <div class="mode-option selected" data-mode="manual">
+                            <div class="mode-title">Manual</div>
+                            <div class="mode-desc">Add [tags] yourself, V3 interprets them</div>
+                        </div>
+                        <div class="mode-option" data-mode="ai_enhance">
+                            <div class="mode-title">AI Enhance</div>
+                            <div class="mode-desc">Click Enhance → see tags → then Generate</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- AI Enhancement Options (shown when ai_enhance mode selected) -->
+                <div id="smartOptions" style="display: none;">
+                    <div class="setting-group">
+                        <div class="setting-label">
+                            <span>Intensity</span>
+                            <span class="setting-value" id="intensityValue">3</span>
+                        </div>
+                        <input type="range" id="intensity" min="1" max="5" value="3">
+                        <div style="display: flex; justify-content: space-between; font-size: 0.7rem; color: var(--text-secondary); margin-top: 0.25rem;">
+                            <span>Subtle</span>
+                            <span>Dramatic</span>
+                        </div>
+                    </div>
+                    
+                    <div class="setting-group">
+                        <div class="setting-label">
+                            <span>Genre</span>
+                        </div>
+                        <select id="genreSelect">
+                            <option value="drama">Drama</option>
+                            <option value="comedy">Comedy</option>
+                            <option value="thriller">Thriller</option>
+                            <option value="romance">Romance</option>
+                            <option value="horror">Horror</option>
+                            <option value="action">Action</option>
+                            <option value="documentary">Documentary</option>
+                            <option value="podcast">Podcast</option>
+                        </select>
+                    </div>
+                    
+                    <!-- Character Profile -->
+                    <div class="setting-group">
+                        <div class="setting-label">
+                            <span>Character</span>
+                            <button id="manageCharsBtn" style="font-size: 0.7rem; padding: 2px 8px; background: var(--bg-tertiary); border: 1px solid var(--border); color: var(--text-secondary); border-radius: 4px; cursor: pointer;">Manage</button>
+                        </div>
+                        <select id="characterSelect">
+                            <option value="">None (generic)</option>
+                        </select>
+                    </div>
+                    
+                    <!-- Mood -->
+                    <div class="setting-group">
+                        <div class="setting-label">
+                            <span>Current Mood</span>
+                        </div>
+                        <select id="moodSelect">
+                            <option value="neutral">Neutral</option>
+                            <option value="happy">Happy</option>
+                            <option value="sad">Sad</option>
+                            <option value="angry">Angry</option>
+                            <option value="anxious">Anxious</option>
+                            <option value="excited">Excited</option>
+                            <option value="tired">Tired</option>
+                            <option value="scared">Scared</option>
+                            <option value="calm">Calm</option>
+                            <option value="flirty">Flirty</option>
+                            <option value="annoyed">Annoyed</option>
+                            <option value="hopeful">Hopeful</option>
+                            <option value="defeated">Defeated</option>
+                        </select>
+                    </div>
+                    
+                    <!-- Energy -->
+                    <div class="setting-group">
+                        <div class="setting-label">
+                            <span>Energy Level</span>
+                        </div>
+                        <select id="energySelect">
+                            <option value="low">Low</option>
+                            <option value="medium" selected>Medium</option>
+                            <option value="high">High</option>
+                        </select>
+                    </div>
+                    
+                    <!-- Scene Context -->
+                    <div class="setting-group">
+                        <div class="setting-label">
+                            <span>Scene Context</span>
+                            <span style="font-size: 0.7rem; color: var(--text-secondary);">(optional)</span>
+                        </div>
+                        <input type="text" id="sceneContext" placeholder="e.g., 'just got bad news'" style="width: 100%; padding: 0.5rem; background: var(--bg-tertiary); border: 1px solid var(--border); border-radius: 4px; color: var(--text-primary); font-size: 0.85rem;">
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Quick Tag Reference -->
+            <div class="tag-reference">
+                <h3>Quick Tags</h3>
+                <div class="tag-list" id="tagList">
+                    <span class="tag" data-tag="[sighs]">[sighs]</span>
+                    <span class="tag" data-tag="[laughs]">[laughs]</span>
+                    <span class="tag" data-tag="[whispers]">[whispers]</span>
+                    <span class="tag" data-tag="[excited]">[excited]</span>
+                    <span class="tag" data-tag="[sad]">[sad]</span>
+                    <span class="tag" data-tag="[angry]">[angry]</span>
+                    <span class="tag" data-tag="[pause]">[pause]</span>
+                    <span class="tag" data-tag="[gasps]">[gasps]</span>
+                </div>
+            </div>
+        </aside>
+    </div>
+
+    <div class="toast" id="toast">
+        <span id="toastMessage"></span>
+    </div>
+    
+    <!-- Character Management Modal -->
+    <div id="charModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Manage Characters</h2>
+                <button class="modal-close" onclick="closeCharModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div id="charList" style="margin-bottom: 1rem;"></div>
+                
+                <h3 style="margin-bottom: 0.5rem;">Add New Character</h3>
+                <form id="charForm" onsubmit="createCharacter(event)">
+                    <div class="form-row">
+                        <label>Name *</label>
+                        <input type="text" id="charName" required placeholder="e.g., Sarah">
+                    </div>
+                    <div class="form-row">
+                        <label>Age</label>
+                        <input type="number" id="charAge" placeholder="e.g., 28">
+                    </div>
+                    <div class="form-row">
+                        <label>Background</label>
+                        <input type="text" id="charBackground" placeholder="e.g., NYC nurse, retired marine">
+                    </div>
+                    <div class="form-row">
+                        <label>Personality</label>
+                        <input type="text" id="charPersonality" placeholder="e.g., introverted, sarcastic, warm">
+                    </div>
+                    <div class="form-row">
+                        <label>Speaking Style</label>
+                        <input type="text" id="charSpeakingStyle" placeholder="e.g., formal, uses filler words">
+                    </div>
+                    <div class="form-row">
+                        <label>Voice Direction</label>
+                        <input type="text" id="charVoiceDirection" placeholder="e.g., think tired nurse who's seen too much">
+                    </div>
+                    <div class="form-row">
+                        <label>Quirks</label>
+                        <input type="text" id="charQuirks" placeholder="e.g., clears throat when nervous">
+                    </div>
+                    <button type="submit" class="btn-primary" style="margin-top: 1rem;">Create Character</button>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <style>
+        /* Modal Styles */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+        .modal-content {
+            background: var(--bg-secondary);
+            border-radius: 12px;
+            width: 90%;
+            max-width: 500px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 1.5rem;
+            border-bottom: 1px solid var(--border);
+        }
+        .modal-header h2 {
+            margin: 0;
+            font-size: 1.25rem;
+        }
+        .modal-close {
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+        .modal-body {
+            padding: 1.5rem;
+        }
+        .form-row {
+            margin-bottom: 0.75rem;
+        }
+        .form-row label {
+            display: block;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            margin-bottom: 0.25rem;
+        }
+        .form-row input {
+            width: 100%;
+            padding: 0.5rem;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            color: var(--text-primary);
+            font-size: 0.9rem;
+        }
+        .form-row input:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+        .btn-primary {
+            background: var(--accent);
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            width: 100%;
+        }
+        .btn-primary:hover {
+            background: var(--accent-hover);
+        }
+        .char-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.75rem;
+            background: var(--bg-tertiary);
+            border-radius: 6px;
+            margin-bottom: 0.5rem;
+        }
+        .char-item-info {
+            flex: 1;
+        }
+        .char-item-name {
+            font-weight: 500;
+        }
+        .char-item-desc {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+        }
+        .char-item-delete {
+            background: none;
+            border: none;
+            color: var(--danger);
+            cursor: pointer;
+            padding: 0.25rem 0.5rem;
+        }
+    </style>
+
+    <script>
+        // Configuration
+        const API_BASE = window.location.origin;
+        
+        // State
+        let selectedVoice = null;
+        let voices = [];
+        let enhancementMode = 'manual';  // 'manual' or 'ai_enhance'
+        
+        // DOM Elements
+        const voiceList = document.getElementById('voiceList');
+        const voiceSearch = document.getElementById('voiceSearch');
+        const textInput = document.getElementById('textInput');
+        const charCount = document.getElementById('charCount');
+        const generateBtn = document.getElementById('generateBtn');
+        const enhanceBtn = document.getElementById('enhanceBtn');
+        const audioPlayer = document.getElementById('audioPlayer');
+        const audioElement = document.getElementById('audioElement');
+        const generateLoading = document.getElementById('generateLoading');
+        const voicesLoading = document.getElementById('voicesLoading');
+        const modeSelector = document.getElementById('modeSelector');
+        const smartOptions = document.getElementById('smartOptions');
+        const tagList = document.getElementById('tagList');
+        
+        // Sliders
+        const stabilitySlider = document.getElementById('stability');
+        const similaritySlider = document.getElementById('similarity');
+        const styleSlider = document.getElementById('style');
+        const intensitySlider = document.getElementById('intensity');
+        
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            loadVoices();
+            loadCharacters();
+            setupEventListeners();
+        });
+        
+        // Load Voices
+        async function loadVoices() {
+            try {
+                const response = await fetch(`${API_BASE}/voices`);
+                if (!response.ok) throw new Error('Failed to load voices');
+                
+                voices = await response.json();
+                renderVoices(voices);
+                voicesLoading.classList.remove('visible');
+            } catch (error) {
+                showToast('Could not load voices. Is the API running?', true);
+                voicesLoading.innerHTML = '<span style="color: var(--danger)">Failed to load</span>';
+            }
+        }
+        
+        // Load Characters
+        async function loadCharacters() {
+            try {
+                const response = await fetch(`${API_BASE}/characters`);
+                if (!response.ok) return;
+                
+                const characters = await response.json();
+                const select = document.getElementById('characterSelect');
+                
+                // Keep the "None" option
+                select.innerHTML = '<option value="">None (generic)</option>';
+                
+                characters.forEach(char => {
+                    const option = document.createElement('option');
+                    option.value = char.id;
+                    option.textContent = char.name + (char.background ? ` - ${char.background}` : '');
+                    select.appendChild(option);
+                });
+            } catch (error) {
+                console.log('Could not load characters:', error);
+            }
+        }
+        
+        // Render Voices
+        function renderVoices(voicesToRender) {
+            const html = voicesToRender.map(voice => `
+                <div class="voice-item ${selectedVoice?.voice_id === voice.voice_id ? 'selected' : ''}" 
+                     data-voice-id="${voice.voice_id}">
+                    <div class="voice-name">${voice.name}</div>
+                    <div class="voice-category">${voice.category || 'General'}</div>
+                </div>
+            `).join('');
+            
+            voiceList.innerHTML = html || '<div style="color: var(--text-secondary)">No voices found</div>';
+            
+            // Add click handlers
+            voiceList.querySelectorAll('.voice-item').forEach(item => {
+                item.addEventListener('click', () => selectVoice(item.dataset.voiceId));
+            });
+        }
+        
+        // Select Voice
+        function selectVoice(voiceId) {
+            selectedVoice = voices.find(v => v.voice_id === voiceId);
+            renderVoices(voices);
+            updateGenerateButton();
+        }
+        
+        // Setup Event Listeners
+        function setupEventListeners() {
+            // Text input
+            textInput.addEventListener('input', () => {
+                const count = textInput.value.length;
+                charCount.textContent = `${count} characters`;
+                updateGenerateButton();
+            });
+            
+            // Voice search
+            voiceSearch.addEventListener('input', (e) => {
+                const query = e.target.value.toLowerCase();
+                const filtered = voices.filter(v => 
+                    v.name.toLowerCase().includes(query) ||
+                    (v.category || '').toLowerCase().includes(query)
+                );
+                renderVoices(filtered);
+            });
+            
+            // Generate button
+            generateBtn.addEventListener('click', generateSpeech);
+            
+            // Enhance button
+            enhanceBtn.addEventListener('click', enhanceText);
+            
+            // Enhancement mode selection
+            modeSelector.querySelectorAll('.mode-option').forEach(option => {
+                option.addEventListener('click', () => {
+                    // Update selection
+                    modeSelector.querySelectorAll('.mode-option').forEach(o => o.classList.remove('selected'));
+                    option.classList.add('selected');
+                    
+                    // Update state
+                    enhancementMode = option.dataset.mode;
+                    
+                    // Show/hide AI options
+                    smartOptions.style.display = enhancementMode === 'ai_enhance' ? 'block' : 'none';
+                    
+                    // Show enhance button only in AI mode
+                    enhanceBtn.style.display = enhancementMode === 'ai_enhance' ? 'inline-flex' : 'none';
+                });
+            });
+            
+            // Sliders
+            stabilitySlider.addEventListener('input', (e) => {
+                document.getElementById('stabilityValue').textContent = `${e.target.value}%`;
+            });
+            
+            similaritySlider.addEventListener('input', (e) => {
+                document.getElementById('similarityValue').textContent = `${e.target.value}%`;
+            });
+            
+            styleSlider.addEventListener('input', (e) => {
+                document.getElementById('styleValue').textContent = `${e.target.value}%`;
+            });
+            
+            intensitySlider.addEventListener('input', (e) => {
+                document.getElementById('intensityValue').textContent = e.target.value;
+            });
+            
+            // Tag clicks
+            tagList.querySelectorAll('.tag').forEach(tag => {
+                tag.addEventListener('click', () => {
+                    insertTag(tag.dataset.tag);
+                });
+            });
+        }
+        
+        // Insert Tag at cursor
+        function insertTag(tag) {
+            const start = textInput.selectionStart;
+            const end = textInput.selectionEnd;
+            const text = textInput.value;
+            
+            textInput.value = text.substring(0, start) + tag + ' ' + text.substring(end);
+            textInput.focus();
+            textInput.setSelectionRange(start + tag.length + 1, start + tag.length + 1);
+            
+            // Trigger input event
+            textInput.dispatchEvent(new Event('input'));
+        }
+        
+        // Update Generate Button State
+        function updateGenerateButton() {
+            const hasText = textInput.value.trim().length > 0;
+            const hasVoice = selectedVoice !== null;
+            generateBtn.disabled = !(hasText && hasVoice);
+        }
+        
+        // Generate Speech
+        async function generateSpeech() {
+            if (!selectedVoice) {
+                showToast('Please select a voice from the sidebar first', true);
+                return;
+            }
+            if (!textInput.value.trim()) {
+                showToast('Please enter some text', true);
+                return;
+            }
+            
+            generateBtn.disabled = true;
+            generateLoading.classList.add('visible');
+            audioPlayer.classList.remove('visible');
+            
+            try {
+                // Always use v3_native - V3 interprets any [tags] in the text
+                // The difference is whether user added tags manually or via AI Enhance
+                const response = await fetch(`${API_BASE}/tts`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        text: textInput.value,
+                        voice_id: selectedVoice.voice_id,
+                        model_id: document.getElementById('modelSelect').value,
+                        stability: parseInt(stabilitySlider.value) / 100,
+                        similarity_boost: parseInt(similaritySlider.value) / 100,
+                        style: parseInt(styleSlider.value) / 100,
+                        enhancement_mode: 'v3_native'  // Always use V3's tag interpretation
+                    })
+                });
+                
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.detail || 'Generation failed');
+                }
+                
+                const blob = await response.blob();
+                const url = URL.createObjectURL(blob);
+                
+                audioElement.src = url;
+                audioPlayer.classList.add('visible');
+                
+            } catch (error) {
+                showToast(error.message, true);
+            } finally {
+                generateBtn.disabled = false;
+                generateLoading.classList.remove('visible');
+                updateGenerateButton();
+            }
+        }
+        
+        // Enhance Text
+        async function enhanceText() {
+            if (!textInput.value.trim()) return;
+            
+            enhanceBtn.disabled = true;
+            enhanceBtn.textContent = '✨ Enhancing...';
+            
+            try {
+                const characterSelect = document.getElementById('characterSelect');
+                const moodSelect = document.getElementById('moodSelect');
+                const energySelect = document.getElementById('energySelect');
+                const sceneContext = document.getElementById('sceneContext');
+                
+                const body = {
+                    text: textInput.value,
+                    intensity: parseInt(intensitySlider.value),
+                    genre: document.getElementById('genreSelect').value,
+                    mood: moodSelect.value,
+                    energy: energySelect.value
+                };
+                
+                // Add character if selected
+                if (characterSelect.value) {
+                    body.character_id = characterSelect.value;
+                }
+                
+                // Add scene context if provided
+                if (sceneContext.value.trim()) {
+                    body.scene_context = sceneContext.value.trim();
+                }
+                
+                const response = await fetch(`${API_BASE}/enhance`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(body)
+                });
+                
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.detail || 'Enhancement failed');
+                }
+                
+                const result = await response.json();
+                textInput.value = result.enhanced_text;
+                textInput.dispatchEvent(new Event('input'));
+                
+                showToast(`Enhanced with ${result.tags_used.length} tags`);
+                
+            } catch (error) {
+                showToast(error.message, true);
+            } finally {
+                enhanceBtn.disabled = false;
+                enhanceBtn.textContent = '✨ Enhance';
+            }
+        }
+        
+        // Show Toast
+        function showToast(message, isError = false) {
+            const toast = document.getElementById('toast');
+            const toastMessage = document.getElementById('toastMessage');
+            
+            toastMessage.textContent = message;
+            toast.classList.toggle('error', isError);
+            toast.classList.add('visible');
+            
+            setTimeout(() => {
+                toast.classList.remove('visible');
+            }, 3000);
+        }
+        
+        // Character Modal Functions
+        function openCharModal() {
+            document.getElementById('charModal').style.display = 'flex';
+            loadCharactersInModal();
+        }
+        
+        function closeCharModal() {
+            document.getElementById('charModal').style.display = 'none';
+        }
+        
+        async function loadCharactersInModal() {
+            try {
+                const response = await fetch(`${API_BASE}/characters`);
+                if (!response.ok) return;
+                
+                const characters = await response.json();
+                const charList = document.getElementById('charList');
+                
+                if (characters.length === 0) {
+                    charList.innerHTML = '<p style="color: var(--text-secondary); font-size: 0.9rem;">No characters yet. Create one below.</p>';
+                    return;
+                }
+                
+                charList.innerHTML = characters.map(char => `
+                    <div class="char-item">
+                        <div class="char-item-info">
+                            <div class="char-item-name">${char.name}${char.age ? ` (${char.age})` : ''}</div>
+                            <div class="char-item-desc">${char.background || char.personality || 'No description'}</div>
+                        </div>
+                        <button class="char-item-delete" onclick="deleteCharacter('${char.id}')">Delete</button>
+                    </div>
+                `).join('');
+            } catch (error) {
+                console.log('Could not load characters:', error);
+            }
+        }
+        
+        async function createCharacter(event) {
+            event.preventDefault();
+            
+            const body = {
+                name: document.getElementById('charName').value,
+            };
+            
+            const age = document.getElementById('charAge').value;
+            if (age) body.age = parseInt(age);
+            
+            const fields = ['Background', 'Personality', 'SpeakingStyle', 'VoiceDirection', 'Quirks'];
+            const apiFields = ['background', 'personality', 'speaking_style', 'voice_direction', 'quirks'];
+            
+            fields.forEach((field, i) => {
+                const val = document.getElementById('char' + field).value;
+                if (val) body[apiFields[i]] = val;
+            });
+            
+            try {
+                const response = await fetch(`${API_BASE}/characters`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(body)
+                });
+                
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.detail || 'Failed to create character');
+                }
+                
+                // Clear form
+                document.getElementById('charForm').reset();
+                
+                // Reload lists
+                loadCharactersInModal();
+                loadCharacters();
+                
+                showToast(`Character "${body.name}" created!`);
+            } catch (error) {
+                showToast(error.message, true);
+            }
+        }
+        
+        async function deleteCharacter(charId) {
+            if (!confirm('Delete this character?')) return;
+            
+            try {
+                const response = await fetch(`${API_BASE}/characters/${charId}`, {
+                    method: 'DELETE'
+                });
+                
+                if (!response.ok) {
+                    throw new Error('Failed to delete character');
+                }
+                
+                loadCharactersInModal();
+                loadCharacters();
+                showToast('Character deleted');
+            } catch (error) {
+                showToast(error.message, true);
+            }
+        }
+        
+        // Wire up manage characters button
+        document.getElementById('manageCharsBtn')?.addEventListener('click', openCharModal);
+    </script>
+</body>
+</html>

@@ -1,0 +1,404 @@
+{
+  "title": "Audio Tags Guide - Eleven V3",
+  "description": "Master expressive speech synthesis with audio tags",
+  "version": "1.0",
+  "sections": [
+    {
+      "id": "introduction",
+      "title": "What are Audio Tags?",
+      "content": "Audio tags are special markers in [square brackets] that control how Eleven V3 delivers speech. They add emotions, vocal sounds, and expressive elements to make your audio more natural and engaging.",
+      "tip": "Audio tags work best with the Stability slider set to 'Creative' or 'Natural' mode."
+    },
+    {
+      "id": "emotions",
+      "title": "Emotions & Delivery",
+      "description": "Control the emotional tone of speech",
+      "tags": [
+        {
+          "tag": "[happy]",
+          "description": "Cheerful, upbeat delivery",
+          "example": "[happy] I just got the best news today!"
+        },
+        {
+          "tag": "[sad]",
+          "description": "Melancholic, downcast tone",
+          "example": "[sad] I really thought things would be different."
+        },
+        {
+          "tag": "[excited]",
+          "description": "High energy, enthusiastic",
+          "example": "[excited] You won't believe what just happened!"
+        },
+        {
+          "tag": "[angry]",
+          "description": "Frustrated, intense delivery",
+          "example": "[angry] This is completely unacceptable!"
+        },
+        {
+          "tag": "[whisper]",
+          "description": "Soft, intimate, secretive tone",
+          "example": "[whisper] Don't tell anyone, but I saw everything."
+        },
+        {
+          "tag": "[sarcastic]",
+          "description": "Ironic, mocking tone",
+          "example": "[sarcastic] Oh sure, because that worked so well last time."
+        },
+        {
+          "tag": "[curious]",
+          "description": "Inquisitive, wondering",
+          "example": "[curious] What do you think is behind that door?"
+        },
+        {
+          "tag": "[thoughtful]",
+          "description": "Contemplative, reflective",
+          "example": "[thoughtful] I wonder if we made the right choice."
+        },
+        {
+          "tag": "[surprised]",
+          "description": "Caught off guard, astonished",
+          "example": "[surprised] Wait, you're actually here?"
+        },
+        {
+          "tag": "[annoyed]",
+          "description": "Irritated, bothered",
+          "example": "[annoyed] I've already told you three times."
+        },
+        {
+          "tag": "[cautiously]",
+          "description": "Careful, hesitant delivery",
+          "example": "[cautiously] Are you sure this is safe?"
+        },
+        {
+          "tag": "[cheerfully]",
+          "description": "Bright, positive tone",
+          "example": "[cheerfully] Good morning everyone!"
+        },
+        {
+          "tag": "[mischievously]",
+          "description": "Playful, scheming",
+          "example": "[mischievously] I have an idea..."
+        },
+        {
+          "tag": "[appalled]",
+          "description": "Shocked, horrified",
+          "example": "[appalled] You did WHAT?"
+        },
+        {
+          "tag": "[elated]",
+          "description": "Extremely happy, overjoyed",
+          "example": "[elated] We actually did it! We won!"
+        }
+      ]
+    },
+    {
+      "id": "nonverbal",
+      "title": "Non-Verbal Sounds",
+      "description": "Add realistic vocal sounds and reactions",
+      "tags": [
+        {
+          "tag": "[laughs]",
+          "description": "Standard laughter",
+          "example": "[laughs] That's the funniest thing I've heard all day!"
+        },
+        {
+          "tag": "[laughs harder]",
+          "description": "More intense laughter",
+          "example": "[laughs harder] Stop, I can't breathe!"
+        },
+        {
+          "tag": "[chuckles]",
+          "description": "Light, soft laughter",
+          "example": "[chuckles] You always know how to make me smile."
+        },
+        {
+          "tag": "[giggling]",
+          "description": "Playful, light laughing",
+          "example": "[giggling] That tickles!"
+        },
+        {
+          "tag": "[wheezing]",
+          "description": "Breathless laughter",
+          "example": "[wheezing] I can't... stop..."
+        },
+        {
+          "tag": "[sighs]",
+          "description": "Exhale expressing emotion",
+          "example": "Well, [sighs] I guess we have to start over."
+        },
+        {
+          "tag": "[exhales]",
+          "description": "Releasing breath",
+          "example": "[exhales] Finally, it's done."
+        },
+        {
+          "tag": "[inhales deeply]",
+          "description": "Taking a deep breath",
+          "example": "[inhales deeply] Okay, let's do this."
+        },
+        {
+          "tag": "[clears throat]",
+          "description": "Throat clearing sound",
+          "example": "[clears throat] Ladies and gentlemen, welcome."
+        },
+        {
+          "tag": "[groaning]",
+          "description": "Sound of frustration or pain",
+          "example": "[groaning] Not another meeting..."
+        },
+        {
+          "tag": "[crying]",
+          "description": "Tearful, emotional",
+          "example": "[crying] I just miss them so much."
+        },
+        {
+          "tag": "[snorts]",
+          "description": "Dismissive or amused sound",
+          "example": "[snorts] As if that would ever work."
+        },
+        {
+          "tag": "[gulps]",
+          "description": "Nervous swallowing",
+          "example": "[gulps] You want me to do what?"
+        },
+        {
+          "tag": "[swallows]",
+          "description": "Swallowing sound",
+          "example": "[swallows] This is harder than I thought."
+        }
+      ]
+    },
+    {
+      "id": "pacing",
+      "title": "Pacing & Timing",
+      "description": "Control pauses and speech rhythm",
+      "tags": [
+        {
+          "tag": "[short pause]",
+          "description": "Brief moment of silence",
+          "example": "I think [short pause] we should reconsider."
+        },
+        {
+          "tag": "[long pause]",
+          "description": "Extended silence for dramatic effect",
+          "example": "And the winner is [long pause] you!"
+        }
+      ],
+      "punctuationTips": [
+        {
+          "technique": "Ellipses (...)",
+          "description": "Creates natural pauses and trailing off",
+          "example": "I thought we could... never mind."
+        },
+        {
+          "technique": "Em dash (—)",
+          "description": "Creates sharp pauses or interruptions",
+          "example": "Wait — what was that noise?"
+        },
+        {
+          "technique": "CAPS",
+          "description": "Emphasizes specific words",
+          "example": "This is VERY important."
+        }
+      ]
+    },
+    {
+      "id": "special",
+      "title": "Special & Experimental",
+      "description": "Creative tags for unique effects",
+      "warning": "These tags are experimental and may not work consistently with all voices.",
+      "tags": [
+        {
+          "tag": "[strong X accent]",
+          "description": "Applies an accent (replace X with accent name)",
+          "example": "[strong French accent] Bonjour, my friend!"
+        },
+        {
+          "tag": "[sings]",
+          "description": "Melodic, singing delivery",
+          "example": "[sings] Happy birthday to you!"
+        },
+        {
+          "tag": "[woo]",
+          "description": "Excited exclamation",
+          "example": "[woo] Let's go!"
+        }
+      ]
+    },
+    {
+      "id": "soundeffects",
+      "title": "Sound Effects",
+      "description": "Environmental audio cues (experimental)",
+      "warning": "Sound effect tags work inconsistently and are best for creative experimentation.",
+      "tags": [
+        {
+          "tag": "[applause]",
+          "description": "Clapping sound",
+          "example": "[applause] Thank you all for coming!"
+        },
+        {
+          "tag": "[gunshot]",
+          "description": "Gunshot sound",
+          "example": "[gunshot] What was that?!"
+        },
+        {
+          "tag": "[explosion]",
+          "description": "Explosion sound",
+          "example": "[explosion] Get down!"
+        },
+        {
+          "tag": "[clapping]",
+          "description": "Hands clapping",
+          "example": "[clapping] Great job everyone!"
+        }
+      ]
+    },
+    {
+      "id": "combining",
+      "title": "Combining Tags",
+      "description": "Use multiple tags for complex emotions",
+      "examples": [
+        {
+          "scenario": "Nervous excitement",
+          "text": "[excited] Oh my god! [gulps] Is this really happening?",
+          "explanation": "Combines excitement with nervous swallowing"
+        },
+        {
+          "scenario": "Sarcastic disappointment",
+          "text": "[sarcastic] Wow, what a surprise. [sighs] I totally didn't see that coming.",
+          "explanation": "Layers sarcasm with an exasperated sigh"
+        },
+        {
+          "scenario": "Emotional revelation",
+          "text": "[thoughtful] I've been thinking and... [long pause] [sad] I think we need to talk.",
+          "explanation": "Builds tension with pause before emotional shift"
+        },
+        {
+          "scenario": "Comic timing",
+          "text": "[cheerfully] So I walked right up to her and said— [clears throat] [cautiously] Actually, maybe I shouldn't tell this story.",
+          "explanation": "Creates comedic pivot moment"
+        }
+      ]
+    },
+    {
+      "id": "dialogues",
+      "title": "Multi-Speaker Dialogues",
+      "description": "Best practices for conversations",
+      "examples": [
+        {
+          "title": "Natural Conversation",
+          "speakers": [
+            {
+              "voice": "Speaker A",
+              "text": "[excitedly] Sam! Have you tried the new feature?"
+            },
+            {
+              "voice": "Speaker B", 
+              "text": "[curiously] Just got it! The clarity is amazing."
+            },
+            {
+              "voice": "Speaker A",
+              "text": "[whispers] Can you keep a secret?"
+            },
+            {
+              "voice": "Speaker B",
+              "text": "[giggling] Always!"
+            }
+          ]
+        },
+        {
+          "title": "Interruption Pattern",
+          "speakers": [
+            {
+              "voice": "Speaker A",
+              "text": "[cautiously] Hello, is this seat—"
+            },
+            {
+              "voice": "Speaker B",
+              "text": "[jumping in] Free? [cheerfully] Yes it is!"
+            }
+          ],
+          "tip": "Use em dashes (—) to show cut-off speech"
+        },
+        {
+          "title": "Trailing Off",
+          "speakers": [
+            {
+              "voice": "Speaker A",
+              "text": "[indecisive] Hi, can I get uhhh..."
+            },
+            {
+              "voice": "Speaker B",
+              "text": "[quizzically] The usual?"
+            },
+            {
+              "voice": "Speaker A",
+              "text": "[elated] Yes! [laughs] I'm so glad you knew!"
+            }
+          ],
+          "tip": "Ellipses (...) create natural hesitation"
+        }
+      ]
+    },
+    {
+      "id": "bestpractices",
+      "title": "Best Practices",
+      "tips": [
+        {
+          "title": "Match voice to tags",
+          "description": "A whispering voice won't suddenly shout well. Choose voices that match your intended emotional range."
+        },
+        {
+          "title": "Use Creative stability for expression",
+          "description": "Set the Stability slider to 'Creative' or 'Natural' for best tag responsiveness. 'Robust' mode reduces tag effectiveness."
+        },
+        {
+          "title": "Don't overuse tags",
+          "description": "Too many tags can make speech feel unnatural. Use them at key emotional moments."
+        },
+        {
+          "title": "Place tags strategically",
+          "description": "Tags work best at the beginning of phrases or right before the affected words."
+        },
+        {
+          "title": "Test and iterate",
+          "description": "Different voices respond differently to tags. Experiment to find what works best."
+        },
+        {
+          "title": "Combine with punctuation",
+          "description": "Use CAPS for emphasis, ellipses for pauses, and em dashes for interruptions alongside tags."
+        }
+      ]
+    },
+    {
+      "id": "quickreference",
+      "title": "Quick Reference",
+      "categories": [
+        {
+          "name": "Emotions",
+          "tags": ["[happy]", "[sad]", "[excited]", "[angry]", "[surprised]", "[thoughtful]", "[curious]", "[annoyed]"]
+        },
+        {
+          "name": "Delivery",
+          "tags": ["[whisper]", "[sarcastic]", "[cheerfully]", "[cautiously]", "[mischievously]"]
+        },
+        {
+          "name": "Laughter",
+          "tags": ["[laughs]", "[chuckles]", "[giggling]", "[laughs harder]", "[wheezing]"]
+        },
+        {
+          "name": "Breathing",
+          "tags": ["[sighs]", "[exhales]", "[inhales deeply]", "[clears throat]"]
+        },
+        {
+          "name": "Reactions",
+          "tags": ["[groaning]", "[crying]", "[snorts]", "[gulps]"]
+        },
+        {
+          "name": "Timing",
+          "tags": ["[short pause]", "[long pause]"]
+        }
+      ]
+    }
+  ]
+}

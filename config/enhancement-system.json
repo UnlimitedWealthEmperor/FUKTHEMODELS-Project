@@ -1,0 +1,152 @@
+{
+  "system": {
+    "name": "Advanced Audio Tag Enhancement System",
+    "version": "1.0",
+    "description": "Multi-pass, context-aware enhancement pipeline for Eleven V3"
+  },
+
+  "passes": {
+    "analysis": {
+      "order": 1,
+      "name": "Emotional Analysis",
+      "description": "Analyze the text structure and emotional content"
+    },
+    "planning": {
+      "order": 2,
+      "name": "Tag Planning",
+      "description": "Plan tag placement and density"
+    },
+    "enhancement": {
+      "order": 3,
+      "name": "Apply Enhancement",
+      "description": "Apply tags based on analysis and planning"
+    },
+    "refinement": {
+      "order": 4,
+      "name": "Quality Check",
+      "description": "Self-critique and balance check",
+      "optional": true
+    }
+  },
+
+  "intensity_levels": {
+    "minimal": {
+      "value": 1,
+      "description": "Very few tags, only at critical moments",
+      "tags_per_100_words": "1-2",
+      "use_case": "Professional narration, subtle delivery"
+    },
+    "light": {
+      "value": 2,
+      "description": "Light touch, natural flow prioritized",
+      "tags_per_100_words": "3-5",
+      "use_case": "Audiobooks, podcasts"
+    },
+    "medium": {
+      "value": 3,
+      "description": "Balanced enhancement, good expressiveness",
+      "tags_per_100_words": "6-10",
+      "use_case": "General dialogue, storytelling"
+    },
+    "heavy": {
+      "value": 4,
+      "description": "Highly expressive, dramatic delivery",
+      "tags_per_100_words": "11-15",
+      "use_case": "Drama, emotional scenes"
+    },
+    "maximum": {
+      "value": 5,
+      "description": "Maximum expression, every emotion emphasized",
+      "tags_per_100_words": "15+",
+      "use_case": "Comedy, over-the-top performances"
+    }
+  },
+
+  "genres": {
+    "drama": {
+      "name": "Drama",
+      "preferred_tags": ["sighs", "long pause", "quietly", "whispers", "voice breaking", "thoughtful"],
+      "avoided_tags": ["laughs harder", "wheezing", "snorts", "woo"],
+      "punctuation_style": "heavy_ellipses",
+      "emphasis_level": "medium"
+    },
+    "comedy": {
+      "name": "Comedy",
+      "preferred_tags": ["chuckles", "laughs", "sarcastic", "snorts", "giggling", "deadpan"],
+      "avoided_tags": ["crying", "voice breaking", "devastated"],
+      "punctuation_style": "exclamations",
+      "emphasis_level": "high"
+    },
+    "thriller": {
+      "name": "Thriller/Suspense",
+      "preferred_tags": ["whispers", "cautiously", "gulps", "short pause", "tense", "urgently"],
+      "avoided_tags": ["cheerfully", "giggling", "laughs harder"],
+      "punctuation_style": "short_sentences",
+      "emphasis_level": "medium"
+    },
+    "romance": {
+      "name": "Romance",
+      "preferred_tags": ["softly", "breathlessly", "sighs", "whispers", "longingly", "tenderly"],
+      "avoided_tags": ["angry", "shouting", "snorts"],
+      "punctuation_style": "flowing",
+      "emphasis_level": "low"
+    },
+    "horror": {
+      "name": "Horror",
+      "preferred_tags": ["whispers", "trembling", "gulps", "terrified", "long pause", "gasps"],
+      "avoided_tags": ["cheerfully", "laughs", "excited"],
+      "punctuation_style": "fragmented",
+      "emphasis_level": "high"
+    },
+    "action": {
+      "name": "Action/Adventure",
+      "preferred_tags": ["urgently", "shouting", "excited", "determined", "grunts"],
+      "avoided_tags": ["thoughtfully", "long pause", "softly"],
+      "punctuation_style": "exclamations",
+      "emphasis_level": "high"
+    },
+    "documentary": {
+      "name": "Documentary/Educational",
+      "preferred_tags": ["thoughtfully", "matter-of-factly", "curious", "explaining"],
+      "avoided_tags": ["crying", "laughs harder", "terrified", "wheezing"],
+      "punctuation_style": "clean",
+      "emphasis_level": "minimal"
+    },
+    "podcast": {
+      "name": "Podcast/Conversational",
+      "preferred_tags": ["laughs", "chuckles", "curious", "surprised", "sighs", "honestly"],
+      "avoided_tags": ["terrified", "voice breaking", "devastated"],
+      "punctuation_style": "natural",
+      "emphasis_level": "medium"
+    }
+  },
+
+  "valid_audio_tags": {
+    "emotions": [
+      "happy", "sad", "excited", "angry", "surprised", "thoughtful", 
+      "curious", "annoyed", "cautiously", "cheerfully", "mischievously",
+      "appalled", "elated", "nervous", "confident", "hesitant", "determined",
+      "frustrated", "relieved", "worried", "hopeful", "disappointed",
+      "skeptical", "amused", "bored", "confused", "proud", "ashamed",
+      "grateful", "jealous", "nostalgic", "content", "anxious"
+    ],
+    "delivery": [
+      "whisper", "whispering", "softly", "loudly", "quietly", "urgently",
+      "slowly", "quickly", "matter-of-factly", "sarcastically", "deadpan",
+      "dramatically", "tenderly", "coldly", "warmly", "breathlessly",
+      "trembling", "voice breaking", "voice rising", "monotone"
+    ],
+    "non_verbal": [
+      "laughs", "laughs harder", "chuckles", "giggling", "wheezing",
+      "sighs", "exhales", "inhales deeply", "clears throat", "groaning",
+      "crying", "snorts", "gulps", "swallows", "gasps", "scoffs",
+      "yawns", "coughs", "sniffles", "hiccups"
+    ],
+    "timing": [
+      "short pause", "long pause", "beat"
+    ],
+    "special": [
+      "sings", "hums", "strong accent"
+    ]
+  }
+}

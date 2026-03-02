@@ -1,0 +1,211 @@
+{
+  "meta": {
+    "name": "Voice Capability Profiles",
+    "version": "1.0",
+    "description": "Voice-specific tag effectiveness ratings for smart enhancement"
+  },
+
+  "capability_schema": {
+    "voice_id": "string - ElevenLabs voice ID",
+    "voice_name": "string - Display name",
+    "language": "string - Primary language",
+    "gender": "male|female|neutral",
+    "age_range": "child|young|adult|mature|elderly",
+    "base_characteristics": {
+      "energy": "1-5 scale",
+      "warmth": "1-5 scale", 
+      "clarity": "1-5 scale",
+      "expressiveness": "1-5 scale"
+    },
+    "tag_effectiveness": {
+      "tag_name": {
+        "rating": "1-5 (1=poor, 5=excellent)",
+        "notes": "optional notes"
+      }
+    },
+    "recommended_genres": ["list of genres"],
+    "not_recommended_for": ["genres to avoid"],
+    "notes": "general notes about the voice"
+  },
+
+  "sample_profiles": {
+    "london_english": {
+      "voice_id": "sample_london_001",
+      "voice_name": "London - English",
+      "language": "en-GB",
+      "gender": "female",
+      "age_range": "young",
+      "base_characteristics": {
+        "energy": 3,
+        "warmth": 4,
+        "clarity": 5,
+        "expressiveness": 4
+      },
+      "tag_effectiveness": {
+        "whispers": {"rating": 5, "notes": "Excellent, very natural"},
+        "whispering": {"rating": 5},
+        "softly": {"rating": 5},
+        "thoughtful": {"rating": 5},
+        "curious": {"rating": 5},
+        "sad": {"rating": 4},
+        "happy": {"rating": 4},
+        "excited": {"rating": 3, "notes": "Decent but not her strength"},
+        "angry": {"rating": 2, "notes": "Comes across as frustrated more than angry"},
+        "shouting": {"rating": 1, "notes": "Not suited for this voice"},
+        "laughs": {"rating": 4},
+        "chuckles": {"rating": 5},
+        "sighs": {"rating": 5},
+        "giggling": {"rating": 4},
+        "laughs harder": {"rating": 2},
+        "wheezing": {"rating": 1},
+        "crying": {"rating": 4},
+        "gulps": {"rating": 4},
+        "matter-of-factly": {"rating": 5},
+        "sarcastically": {"rating": 4}
+      },
+      "recommended_genres": ["drama", "romance", "podcast", "audiobook", "documentary"],
+      "not_recommended_for": ["action", "comedy with big laughs"],
+      "notes": "Excellent for intimate, thoughtful content. Natural British warmth. Great for narration and emotional dialogue."
+    },
+
+    "american_confident_male": {
+      "voice_id": "sample_us_002",
+      "voice_name": "Marcus - American",
+      "language": "en-US",
+      "gender": "male",
+      "age_range": "adult",
+      "base_characteristics": {
+        "energy": 4,
+        "warmth": 3,
+        "clarity": 5,
+        "expressiveness": 4
+      },
+      "tag_effectiveness": {
+        "confidently": {"rating": 5},
+        "matter-of-factly": {"rating": 5},
+        "determined": {"rating": 5},
+        "urgently": {"rating": 5},
+        "shouting": {"rating": 4},
+        "angry": {"rating": 4},
+        "excited": {"rating": 4},
+        "laughs": {"rating": 4},
+        "chuckles": {"rating": 4},
+        "whispers": {"rating": 3, "notes": "Acceptable but not his strength"},
+        "softly": {"rating": 3},
+        "sad": {"rating": 3},
+        "crying": {"rating": 2, "notes": "Sounds forced"},
+        "giggling": {"rating": 1, "notes": "Does not fit voice"},
+        "sighs": {"rating": 4},
+        "thoughtful": {"rating": 3}
+      },
+      "recommended_genres": ["action", "thriller", "documentary", "corporate"],
+      "not_recommended_for": ["romance", "children's content"],
+      "notes": "Strong, authoritative voice. Best for confident characters and narration. Less suited for vulnerable emotional moments."
+    },
+
+    "expressive_female": {
+      "voice_id": "sample_expressive_003",
+      "voice_name": "Aria - Expressive",
+      "language": "en-US",
+      "gender": "female",
+      "age_range": "young",
+      "base_characteristics": {
+        "energy": 5,
+        "warmth": 5,
+        "clarity": 4,
+        "expressiveness": 5
+      },
+      "tag_effectiveness": {
+        "excited": {"rating": 5},
+        "happy": {"rating": 5},
+        "laughs": {"rating": 5},
+        "laughs harder": {"rating": 5},
+        "giggling": {"rating": 5},
+        "chuckles": {"rating": 5},
+        "wheezing": {"rating": 4},
+        "surprised": {"rating": 5},
+        "sad": {"rating": 5},
+        "crying": {"rating": 5},
+        "angry": {"rating": 4},
+        "whispers": {"rating": 4},
+        "sighs": {"rating": 5},
+        "gasps": {"rating": 5},
+        "sarcastically": {"rating": 5},
+        "matter-of-factly": {"rating": 3, "notes": "Tends to add emotion even here"},
+        "monotone": {"rating": 1, "notes": "Not suited for flat delivery"}
+      },
+      "recommended_genres": ["comedy", "animation", "podcast", "character voices"],
+      "not_recommended_for": ["documentary", "corporate", "news"],
+      "notes": "Highly expressive voice with excellent emotional range. Perfect for comedy and character work. May be too expressive for neutral content."
+    },
+
+    "narrator_mature": {
+      "voice_id": "sample_narrator_004",
+      "voice_name": "William - Narrator",
+      "language": "en-GB",
+      "gender": "male",
+      "age_range": "mature",
+      "base_characteristics": {
+        "energy": 2,
+        "warmth": 4,
+        "clarity": 5,
+        "expressiveness": 3
+      },
+      "tag_effectiveness": {
+        "thoughtfully": {"rating": 5},
+        "wisely": {"rating": 5},
+        "gently": {"rating": 5},
+        "matter-of-factly": {"rating": 5},
+        "softly": {"rating": 5},
+        "sighs": {"rating": 5},
+        "chuckles": {"rating": 4},
+        "sad": {"rating": 4},
+        "curious": {"rating": 4},
+        "excited": {"rating": 2, "notes": "Too dignified for high excitement"},
+        "laughs harder": {"rating": 1},
+        "wheezing": {"rating": 1},
+        "giggling": {"rating": 1},
+        "shouting": {"rating": 2},
+        "angry": {"rating": 3},
+        "urgently": {"rating": 3}
+      },
+      "recommended_genres": ["audiobook", "documentary", "education", "drama"],
+      "not_recommended_for": ["comedy", "action", "children's animation"],
+      "notes": "Distinguished, trustworthy voice. Excellent for long-form narration and wise characters. Limited high-energy range."
+    }
+  },
+
+  "tag_fallback_rules": {
+    "description": "When a tag has low effectiveness for a voice, suggest alternatives",
+    "fallbacks": {
+      "shouting": ["urgently", "firmly", "loudly"],
+      "laughs harder": ["laughs", "chuckles"],
+      "wheezing": ["laughs", "breathlessly"],
+      "giggling": ["chuckles", "laughs softly"],
+      "crying": ["voice breaking", "shakily", "tearfully"],
+      "screaming": ["shouting", "desperately", "urgently"]
+    }
+  },
+
+  "auto_detection_hints": {
+    "description": "Clues to auto-detect voice capabilities from ElevenLabs metadata",
+    "rules": [
+      {
+        "if": "preview contains laughter",
+        "then": "likely good at laugh tags"
+      },
+      {
+        "if": "labeled as 'calm' or 'soothing'",
+        "then": "likely good at whispers, softly; weak at shouting, angry"
+      },
+      {
+        "if": "labeled as 'energetic' or 'upbeat'",
+        "then": "likely good at excited, happy, laughs; may struggle with subtle emotions"
+      },
+      {
+        "if": "labeled as 'professional' or 'authoritative'",
+        "then": "likely good at matter-of-factly, determined; may struggle with playful tags"
+      }
+    ]
+  }
+}
