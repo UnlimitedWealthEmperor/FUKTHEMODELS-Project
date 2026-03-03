@@ -1089,9 +1089,109 @@
         ::-webkit-scrollbar-thumb:hover {
             background: var(--text-muted);
         }
+        
+        /* Login Modal */
+        .auth-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.95);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+        }
+        
+        .auth-modal {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 2rem;
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
+        }
+        
+        .auth-modal h2 {
+            font-size: 1.5rem;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(90deg, #ff6b35, #ffd700);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .auth-modal p {
+            color: var(--text-secondary);
+            margin-bottom: 1.5rem;
+            font-size: 0.9rem;
+        }
+        
+        .auth-input {
+            width: 100%;
+            padding: 0.875rem 1rem;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            color: var(--text-primary);
+            font-size: 1rem;
+            margin-bottom: 1rem;
+        }
+        
+        .auth-input:focus {
+            outline: none;
+            border-color: #ff6b35;
+        }
+        
+        .auth-btn {
+            width: 100%;
+            padding: 0.875rem;
+            background: #ffffff;
+            color: #000000;
+            border: none;
+            border-radius: var(--radius-md);
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.15s ease;
+        }
+        
+        .auth-btn:hover {
+            background: #e5e5e5;
+        }
+        
+        .auth-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .auth-error {
+            color: var(--danger);
+            font-size: 0.85rem;
+            margin-top: 0.5rem;
+            display: none;
+        }
+        
+        .auth-error.visible {
+            display: block;
+        }
     </style>
 </head>
 <body>
+    <!-- Auth Modal -->
+    <div class="auth-overlay" id="authOverlay" style="display: none;">
+        <div class="auth-modal">
+            <h2 id="authTitle">Welcome to FuckTheModels</h2>
+            <p id="authSubtitle">Set up your password to protect this instance</p>
+            <input type="password" class="auth-input" id="authPassword" placeholder="Enter password" autocomplete="current-password">
+            <input type="password" class="auth-input" id="authConfirm" placeholder="Confirm password" style="display: none;">
+            <button class="auth-btn" id="authSubmit">Set Password</button>
+            <div class="auth-error" id="authError"></div>
+        </div>
+    </div>
+
     <header>
         <div class="logo">
             <svg width="200" height="40" viewBox="0 0 200 40" xmlns="http://www.w3.org/2000/svg">
@@ -1675,8 +1775,162 @@ Examples:
             }
         }
         
-        // Initialize
-        document.addEventListener('DOMContentLoaded', () => {
+        // ============================================
+        // Authentication
+        // ============================================
+        
+        const authOverlay = document.getElementById('authOverlay');
+        const authTitle = document.getElementById('authTitle');
+        const authSubtitle = document.getElementById('authSubtitle');
+        const authPassword = document.getElementById('authPassword');
+        const authConfirm = document.getElementById('authConfirm');
+        const authSubmit = document.getElementById('authSubmit');
+        const authError = document.getElementById('authError');
+        
+        let isSetupMode = false;
+        
+        async function checkAuth() {
+            try {
+                const response = await fetch(`${API_BASE}/auth/status`);
+                const status = await response.json();
+                
+                if (status.needs_setup) {
+                    // Show setup mode
+                    showAuthModal(true);
+                    return false;
+                }
+                
+                // Try to access a protected endpoint
+                const testResponse = await fetch(`${API_BASE}/voices`);
+                if (testResponse.status === 401) {
+                    showAuthModal(false);
+                    return false;
+                }
+                
+                // Authenticated
+                hideAuthModal();
+                return true;
+            } catch (error) {
+                console.error('Auth check failed:', error);
+                return true; // Let it fail later if there's a real issue
+            }
+        }
+        
+        function showAuthModal(setupMode) {
+            isSetupMode = setupMode;
+            authOverlay.style.display = 'flex';
+            
+            if (setupMode) {
+                authTitle.textContent = 'Welcome to FuckTheModels';
+                authSubtitle.textContent = 'Set up your password to protect this instance';
+                authConfirm.style.display = 'block';
+                authSubmit.textContent = 'Set Password';
+            } else {
+                authTitle.textContent = 'Login Required';
+                authSubtitle.textContent = 'Enter your password to continue';
+                authConfirm.style.display = 'none';
+                authSubmit.textContent = 'Login';
+            }
+            
+            authPassword.value = '';
+            authConfirm.value = '';
+            authError.classList.remove('visible');
+            authPassword.focus();
+        }
+        
+        function hideAuthModal() {
+            authOverlay.style.display = 'none';
+        }
+        
+        function showAuthError(message) {
+            authError.textContent = message;
+            authError.classList.add('visible');
+        }
+        
+        async function handleAuth() {
+            const password = authPassword.value;
+            
+            if (!password) {
+                showAuthError('Please enter a password');
+                return;
+            }
+            
+            if (isSetupMode) {
+                const confirm = authConfirm.value;
+                if (password !== confirm) {
+                    showAuthError('Passwords do not match');
+                    return;
+                }
+                
+                // Setup password
+                authSubmit.disabled = true;
+                authSubmit.textContent = 'Setting up...';
+                
+                try {
+                    const response = await fetch(`${API_BASE}/auth/setup`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ password })
+                    });
+                    
+                    if (!response.ok) {
+                        const error = await response.json();
+                        throw new Error(error.detail || 'Setup failed');
+                    }
+                    
+                    hideAuthModal();
+                    initializeApp();
+                } catch (error) {
+                    showAuthError(error.message);
+                } finally {
+                    authSubmit.disabled = false;
+                    authSubmit.textContent = 'Set Password';
+                }
+            } else {
+                // Login
+                authSubmit.disabled = true;
+                authSubmit.textContent = 'Logging in...';
+                
+                try {
+                    const response = await fetch(`${API_BASE}/auth/login`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ password })
+                    });
+                    
+                    if (!response.ok) {
+                        const error = await response.json();
+                        throw new Error(error.detail || 'Login failed');
+                    }
+                    
+                    hideAuthModal();
+                    initializeApp();
+                } catch (error) {
+                    showAuthError(error.message);
+                } finally {
+                    authSubmit.disabled = false;
+                    authSubmit.textContent = 'Login';
+                }
+            }
+        }
+        
+        // Auth event listeners
+        authSubmit.addEventListener('click', handleAuth);
+        authPassword.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                if (isSetupMode) {
+                    authConfirm.focus();
+                } else {
+                    handleAuth();
+                }
+            }
+        });
+        authConfirm.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') handleAuth();
+        });
+        
+        // Initialize app after auth
+        function initializeApp() {
             loadVoices();
             loadCharacters();
             loadHistory();
@@ -1684,6 +1938,14 @@ Examples:
             updateCostDisplay();
             // Refresh cost every 30 seconds
             setInterval(updateCostDisplay, 30000);
+        }
+        
+        // Initialize
+        document.addEventListener('DOMContentLoaded', async () => {
+            const authed = await checkAuth();
+            if (authed) {
+                initializeApp();
+            }
         });
         
         // Load Voices
@@ -2225,6 +2487,12 @@ Examples:
                         enhancement_mode: 'v3_native'  // Always use V3's tag interpretation
                     })
                 });
+                
+                if (response.status === 401) {
+                    // Session expired - show login
+                    showAuthModal(false);
+                    return;
+                }
                 
                 if (!response.ok) {
                     const error = await response.json();

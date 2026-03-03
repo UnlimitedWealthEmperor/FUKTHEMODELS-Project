@@ -22,8 +22,8 @@ from datetime import datetime
 from typing import Optional, List, Dict, Any
 from pathlib import Path
 
-from fastapi import FastAPI, HTTPException, BackgroundTasks, Query
-from fastapi.responses import StreamingResponse, FileResponse, JSONResponse, HTMLResponse
+from fastapi import FastAPI, HTTPException, BackgroundTasks, Query, Request, Depends, Cookie
+from fastapi.responses import StreamingResponse, FileResponse, JSONResponse, HTMLResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
@@ -35,6 +35,7 @@ from services.enhancement_service import EnhancementService, EnhancementResult, 
 from services.character_service import CharacterService, CharacterProfile, SceneState, AVAILABLE_MOODS, ENERGY_LEVELS
 from services.storage_service import StorageService, get_storage_service
 from services.sheets_service import get_sheets_service
+from services.auth_service import get_auth_service, AuthService
 
 
 # ============================================================================
@@ -56,12 +57,54 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+
+# ============================================================================
+# Authentication Middleware
+# ============================================================================
+
+# Routes that don't require authentication
+PUBLIC_ROUTES = {"/", "/auth/status", "/auth/setup", "/auth/login", "/auth/logout", "/docs", "/openapi.json", "/redoc"}
+
+
+@app.middleware("http")
+async def auth_middleware(request: Request, call_next):
+    """Check authentication for protected routes"""
+    path = request.url.path
+    
+    # Allow public routes
+    if path in PUBLIC_ROUTES or path.startswith("/static"):
+        return await call_next(request)
+    
+    # Get auth service
+    auth = get_auth_service()
+    
+    # If password not set up, allow all (setup will be forced on frontend)
+    if not auth.is_setup:
+        return await call_next(request)
+    
+    # Check session token from cookie or header
+    session_token = request.cookies.get("session_token")
+    if not session_token:
+        # Also check Authorization header
+        auth_header = request.headers.get("Authorization")
+        if auth_header and auth_header.startswith("Bearer "):
+            session_token = auth_header[7:]
+    
+    if not session_token or not auth.verify_session(session_token):
+        return JSONResponse(
+            status_code=401,
+            content={"detail": "Not authenticated", "needs_login": True}
+        )
+    
+    return await call_next(request)
+
 # Services (initialized on startup)
 elevenlabs_service: Optional[ElevenLabsService] = None
 enhancement_service: Optional[EnhancementService] = None
 character_service: Optional[CharacterService] = None
 storage_service: Optional[StorageService] = None
 sheets_service = None  # Google Sheets database service
+auth_service: Optional[AuthService] = None  # Password authentication
 
 # Paths
 BASE_DIR = Path(__file__).parent
@@ -202,7 +245,14 @@ class HistoryItem(BaseModel):
 @app.on_event("startup")
 async def startup_event():
     """Initialize services on startup"""
-    global elevenlabs_service, enhancement_service, character_service, storage_service, sheets_service, generation_history
+    global elevenlabs_service, enhancement_service, character_service, storage_service, sheets_service, auth_service, generation_history
+    
+    # Initialize Authentication service
+    auth_service = get_auth_service()
+    if auth_service.is_setup:
+        print("✓ Authentication enabled (password protected)")
+    else:
+        print("⚠ Password not set - setup required on first access")
     
     # Create output directory
     OUTPUT_DIR.mkdir(exist_ok=True)
@@ -368,6 +418,127 @@ async def add_to_history(
     save_history()
     
     return history_item
+
+
+# ============================================================================
+# Authentication Endpoints
+# ============================================================================
+
+class SetupPasswordRequest(BaseModel):
+    password: str = Field(..., min_length=1, description="Password to set")
+
+
+class LoginRequest(BaseModel):
+    password: str = Field(..., description="Password to verify")
+
+
+@app.get("/auth/status")
+async def get_auth_status():
+    """Check authentication status"""
+    auth = get_auth_service()
+    return {
+        "is_setup": auth.is_setup,
+        "needs_setup": not auth.is_setup
+    }
+
+
+@app.post("/auth/setup")
+async def setup_password(request: SetupPasswordRequest):
+    """
+    Set up the initial password (first-time only)
+    
+    Once set, cannot be changed through this endpoint
+    """
+    auth = get_auth_service()
+    
+    if auth.is_setup:
+        raise HTTPException(
+            status_code=400,
+            detail="Password already configured. Cannot change through this endpoint."
+        )
+    
+    if not request.password:
+        raise HTTPException(status_code=400, detail="Password cannot be empty")
+    
+    success = auth.setup_password(request.password)
+    if not success:
+        raise HTTPException(status_code=500, detail="Failed to set up password")
+    
+    # Auto-login after setup
+    token = auth.create_session(request.password)
+    
+    response = JSONResponse(content={
+        "success": True,
+        "message": "Password configured successfully"
+    })
+    
+    # Set session cookie
+    response.set_cookie(
+        key="session_token",
+        value=token,
+        httponly=True,
+        max_age=86400,  # 24 hours
+        samesite="lax"
+    )
+    
+    return response
+
+
+@app.post("/auth/login")
+async def login(request: LoginRequest):
+    """
+    Login with password
+    
+    Returns session token in cookie
+    """
+    auth = get_auth_service()
+    
+    if not auth.is_setup:
+        raise HTTPException(
+            status_code=400,
+            detail="Password not set up yet. Use /auth/setup first."
+        )
+    
+    token = auth.create_session(request.password)
+    
+    if not token:
+        raise HTTPException(status_code=401, detail="Invalid password")
+    
+    response = JSONResponse(content={
+        "success": True,
+        "message": "Login successful"
+    })
+    
+    response.set_cookie(
+        key="session_token",
+        value=token,
+        httponly=True,
+        max_age=86400,  # 24 hours
+        samesite="lax"
+    )
+    
+    return response
+
+
+@app.post("/auth/logout")
+async def logout(request: Request):
+    """Logout and invalidate session"""
+    auth = get_auth_service()
+    
+    # Get session token
+    session_token = request.cookies.get("session_token")
+    if session_token:
+        auth.invalidate_session(session_token)
+    
+    response = JSONResponse(content={
+        "success": True,
+        "message": "Logged out successfully"
+    })
+    
+    # Clear cookie
+    response.delete_cookie(key="session_token")
+    
+    return response
 
 
 # ============================================================================
