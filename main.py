@@ -203,6 +203,14 @@ class UsageStatsResponse(BaseModel):
     # Pre-formatted strings for display
     total_cost_usd_formatted: str = "$0.000000"
     total_cost_usd_x20_formatted: str = "$0.0000"
+    # Separate Claude and ElevenLabs stats
+    claude_requests: int = 0
+    claude_input_tokens: int = 0
+    claude_output_tokens: int = 0
+    claude_cost_usd: float = 0.0
+    elevenlabs_requests: int = 0
+    elevenlabs_characters: int = 0
+    elevenlabs_cost_usd: float = 0.0
 
 
 class VoiceInfo(BaseModel):
@@ -418,6 +426,39 @@ async def add_to_history(
     save_history()
     
     return history_item
+
+
+async def track_ai_usage(
+    service: str,
+    usage_type: str,
+    input_tokens: int = 0,
+    output_tokens: int = 0,
+    characters: int = 0,
+    cost_usd: float = 0.0,
+    description: str = ""
+):
+    """
+    Track AI service usage in Google Sheets for persistent cost tracking
+    
+    Args:
+        service: "claude" or "elevenlabs"
+        usage_type: "enhancement" for Claude, "tts" for ElevenLabs  
+        input_tokens: Input tokens (Claude only)
+        output_tokens: Output tokens (Claude only)
+        characters: Characters used (ElevenLabs only)
+        cost_usd: Cost in USD
+        description: Optional description
+    """
+    if sheets_service and sheets_service.is_available:
+        await sheets_service.add_usage_entry(
+            service=service,
+            usage_type=usage_type,
+            input_tokens=input_tokens,
+            output_tokens=output_tokens,
+            characters=characters,
+            cost_usd=cost_usd,
+            description=description
+        )
 
 
 # ============================================================================
@@ -813,16 +854,29 @@ async def text_to_speech(input: TTSInput, background_tasks: BackgroundTasks):
     
     text = input.text
     enhanced_text = None
+    enhancement_result = None
     
     # Handle enhancement modes
     if input.enhancement_mode == "smart" and enhancement_service:
         # Our LLM-powered enhancement - adds contextual audio tags
-        enhanced_text = enhancement_service.enhance_simple(
+        enhancement_result = enhancement_service.enhance(
             text=text,
-            genre=input.enhance_genre,
-            intensity=input.enhance_intensity
+            intensity=input.enhance_intensity,
+            genre=input.enhance_genre
         )
+        enhanced_text = enhancement_result.enhanced_text
         text = enhanced_text
+        
+        # Track Claude usage if enhancement was successful and had tokens
+        if enhancement_result.input_tokens > 0:
+            await track_ai_usage(
+                service="claude",
+                usage_type="enhancement",
+                input_tokens=enhancement_result.input_tokens,
+                output_tokens=enhancement_result.output_tokens,
+                cost_usd=enhancement_result.cost_usd,
+                description=f"Smart enhancement ({input.enhance_genre}, intensity {input.enhance_intensity})"
+            )
     elif input.enhancement_mode == "v3_native":
         # V3 native - text goes directly to V3 which interprets [tags]
         # No modification needed, V3 handles tags natively
@@ -869,6 +923,16 @@ async def text_to_speech(input: TTSInput, background_tasks: BackgroundTasks):
         audio_data=response.audio_data,
         character_count=response.character_count,
         language_code=input.language_code
+    )
+    
+    # Track ElevenLabs usage (cost ~$0.30 per 1000 characters for most plans)
+    elevenlabs_cost = round(response.character_count * 0.0003, 6)  # $0.30/1000 chars
+    await track_ai_usage(
+        service="elevenlabs",
+        usage_type="tts",
+        characters=response.character_count,
+        cost_usd=elevenlabs_cost,
+        description=f"TTS: {voice_name} ({input.model_id})"
     )
     
     # Return audio as streaming response
@@ -1060,22 +1124,36 @@ async def enhance_text(input: EnhanceInput):
 @app.get("/usage", response_model=UsageStatsResponse)
 async def get_usage_stats():
     """
-    Get cumulative usage statistics for AI enhancement.
+    Get cumulative usage statistics for AI services (Claude + ElevenLabs).
+    Data persists in Google Sheets across server restarts.
     Shows actual API cost and client price (×20 markup).
-    Resets when server restarts.
     """
-    # Calculate all values in backend
-    total_cost = round(usage_stats.total_cost_usd, 6)
-    total_cost_x20 = round(usage_stats.total_cost_usd * 20, 4)
+    # Get persistent totals from Google Sheets
+    totals = {"claude_requests": 0, "claude_input_tokens": 0, "claude_output_tokens": 0,
+              "claude_cost_usd": 0.0, "elevenlabs_requests": 0, "elevenlabs_characters": 0,
+              "elevenlabs_cost_usd": 0.0, "total_cost_usd": 0.0}
+    
+    if sheets_service and sheets_service.is_available:
+        totals = await sheets_service.get_usage_totals()
+    
+    total_cost = round(totals["total_cost_usd"], 6)
+    total_cost_x20 = round(totals["total_cost_usd"] * 20, 4)
     
     return UsageStatsResponse(
-        total_requests=usage_stats.total_requests,
-        total_input_tokens=usage_stats.total_input_tokens,
-        total_output_tokens=usage_stats.total_output_tokens,
+        total_requests=totals["claude_requests"] + totals["elevenlabs_requests"],
+        total_input_tokens=totals["claude_input_tokens"],
+        total_output_tokens=totals["claude_output_tokens"],
         total_cost_usd=total_cost,
         total_cost_usd_x20=total_cost_x20,
         total_cost_usd_formatted=f"${total_cost:.6f}",
-        total_cost_usd_x20_formatted=f"${total_cost_x20:.4f}"
+        total_cost_usd_x20_formatted=f"${total_cost_x20:.4f}",
+        claude_requests=totals["claude_requests"],
+        claude_input_tokens=totals["claude_input_tokens"],
+        claude_output_tokens=totals["claude_output_tokens"],
+        claude_cost_usd=round(totals["claude_cost_usd"], 6),
+        elevenlabs_requests=totals["elevenlabs_requests"],
+        elevenlabs_characters=totals["elevenlabs_characters"],
+        elevenlabs_cost_usd=round(totals["elevenlabs_cost_usd"], 6)
     )
 
 
@@ -1340,12 +1418,12 @@ async def get_quick_reference():
 
 
 # ============================================================================
-# Usage & Stats Endpoints
+# ElevenLabs Subscription Endpoint
 # ============================================================================
 
-@app.get("/usage")
-async def get_usage():
-    """Get current API usage statistics"""
+@app.get("/usage/subscription")
+async def get_elevenlabs_subscription():
+    """Get ElevenLabs subscription character usage (quota remaining)"""
     if not elevenlabs_service:
         raise HTTPException(status_code=503, detail="ElevenLabs service not configured")
     
