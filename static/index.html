@@ -46,6 +46,36 @@
             color: var(--accent);
         }
         
+        .cost-display {
+            display: flex;
+            gap: 1.5rem;
+            padding: 0.5rem 1rem;
+            background: var(--bg-tertiary);
+            border-radius: 8px;
+            border: 1px solid var(--border);
+        }
+        
+        .cost-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.25rem;
+        }
+        
+        .cost-label {
+            font-size: 0.65rem;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        
+        .cost-value {
+            font-size: 1rem;
+            font-weight: 600;
+            color: #22c55e;
+            font-family: 'SF Mono', 'Monaco', 'Consolas', monospace;
+        }
+        
         .nav-links {
             display: flex;
             gap: 2rem;
@@ -530,6 +560,12 @@
 <body>
     <header>
         <div class="logo">TTS Platform</div>
+        <div class="cost-display" id="costDisplay">
+            <div class="cost-item">
+                <span class="cost-label">AI Usage</span>
+                <span class="cost-value" id="costValueX20">$0.0000</span>
+            </div>
+        </div>
         <nav class="nav-links">
             <a href="#" class="active">Speech Synthesis</a>
             <a href="#dialogue">Multi-Speaker</a>
@@ -604,12 +640,56 @@ Examples:
             
             <div class="setting-group">
                 <div class="setting-label">
-                    <span>Model</span>
+                    <span>Engine</span>
                 </div>
-                <select id="modelSelect">
-                    <option value="eleven_v3">Eleven V3 (Recommended)</option>
-                    <option value="eleven_turbo_v2_5">Eleven Turbo V2.5</option>
-                    <option value="eleven_multilingual_v2">Multilingual V2</option>
+                <div style="padding: 0.75rem; background: var(--bg-tertiary); border: 1px solid var(--border); border-radius: 8px; color: var(--accent); font-weight: 500;">
+                    SymphoGear V1
+                </div>
+            </div>
+            
+            <div class="setting-group">
+                <div class="setting-label">
+                    <span>Language Override</span>
+                </div>
+                <select id="languageSelect">
+                    <option value="">Auto-detect</option>
+                    <option value="en">English</option>
+                    <option value="es">Spanish</option>
+                    <option value="fr">French</option>
+                    <option value="de">German</option>
+                    <option value="it">Italian</option>
+                    <option value="pt">Portuguese</option>
+                    <option value="pl">Polish</option>
+                    <option value="ru">Russian</option>
+                    <option value="nl">Dutch</option>
+                    <option value="ja">Japanese</option>
+                    <option value="zh">Mandarin Chinese</option>
+                    <option value="ko">Korean</option>
+                    <option value="ar">Arabic</option>
+                    <option value="hi">Hindi</option>
+                    <option value="tr">Turkish</option>
+                    <option value="sv">Swedish</option>
+                    <option value="no">Norwegian</option>
+                    <option value="da">Danish</option>
+                    <option value="fi">Finnish</option>
+                    <option value="el">Greek</option>
+                    <option value="he">Hebrew</option>
+                    <option value="id">Indonesian</option>
+                    <option value="ms">Malay</option>
+                    <option value="th">Thai</option>
+                    <option value="vi">Vietnamese</option>
+                    <option value="uk">Ukrainian</option>
+                    <option value="cs">Czech</option>
+                    <option value="ro">Romanian</option>
+                    <option value="hu">Hungarian</option>
+                    <option value="bg">Bulgarian</option>
+                    <option value="hr">Croatian</option>
+                    <option value="sk">Slovak</option>
+                    <option value="sl">Slovenian</option>
+                    <option value="fil">Filipino</option>
+                    <option value="ta">Tamil</option>
+                    <option value="bn">Bengali</option>
+                    <option value="ur">Urdu</option>
                 </select>
             </div>
             
@@ -631,14 +711,6 @@ Examples:
                     <span class="setting-value" id="similarityValue">75%</span>
                 </div>
                 <input type="range" id="similarity" min="0" max="100" value="75">
-            </div>
-            
-            <div class="setting-group">
-                <div class="setting-label">
-                    <span>Style</span>
-                    <span class="setting-value" id="styleValue">0%</span>
-                </div>
-                <input type="range" id="style" min="0" max="100" value="0">
             </div>
             
             <!-- Enhancement Settings -->
@@ -944,14 +1016,29 @@ Examples:
         // Sliders
         const stabilitySlider = document.getElementById('stability');
         const similaritySlider = document.getElementById('similarity');
-        const styleSlider = document.getElementById('style');
         const intensitySlider = document.getElementById('intensity');
+        
+        // Update cost display
+        async function updateCostDisplay() {
+            try {
+                const response = await fetch(`${API_BASE}/usage`);
+                if (!response.ok) return;
+                
+                const usage = await response.json();
+                document.getElementById('costValueX20').textContent = usage.total_cost_usd_x20_formatted;
+            } catch (error) {
+                // Silently fail - cost display is optional
+            }
+        }
         
         // Initialize
         document.addEventListener('DOMContentLoaded', () => {
             loadVoices();
             loadCharacters();
             setupEventListeners();
+            updateCostDisplay();
+            // Refresh cost every 30 seconds
+            setInterval(updateCostDisplay, 30000);
         });
         
         // Load Voices
@@ -1069,10 +1156,6 @@ Examples:
                 document.getElementById('similarityValue').textContent = `${e.target.value}%`;
             });
             
-            styleSlider.addEventListener('input', (e) => {
-                document.getElementById('styleValue').textContent = `${e.target.value}%`;
-            });
-            
             intensitySlider.addEventListener('input', (e) => {
                 document.getElementById('intensityValue').textContent = e.target.value;
             });
@@ -1124,16 +1207,19 @@ Examples:
             try {
                 // Always use v3_native - V3 interprets any [tags] in the text
                 // The difference is whether user added tags manually or via AI Enhance
+                const languageCode = document.getElementById('languageSelect').value || null;
+                
                 const response = await fetch(`${API_BASE}/tts`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         text: textInput.value,
                         voice_id: selectedVoice.voice_id,
-                        model_id: document.getElementById('modelSelect').value,
+                        model_id: 'eleven_v3',  // SymphoGear V1 engine
                         stability: parseInt(stabilitySlider.value) / 100,
                         similarity_boost: parseInt(similaritySlider.value) / 100,
-                        style: parseInt(styleSlider.value) / 100,
+                        style: 0,  // V3 doesn't use style
+                        language_code: languageCode,
                         enhancement_mode: 'v3_native'  // Always use V3's tag interpretation
                     })
                 });
@@ -1204,7 +1290,10 @@ Examples:
                 textInput.value = result.enhanced_text;
                 textInput.dispatchEvent(new Event('input'));
                 
-                showToast(`Enhanced with ${result.tags_used.length} tags`);
+                // Update cost display after enhancement
+                updateCostDisplay();
+                
+                showToast(`Enhanced with ${result.tags_used.length} tags - Cost: ${result.cost_usd_x20_formatted}`);
                 
             } catch (error) {
                 showToast(error.message, true);

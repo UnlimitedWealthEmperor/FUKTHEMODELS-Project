@@ -36,6 +36,33 @@ class EnhancementResult:
     enhanced_text: str
     tags_used: List[str]
     confidence_score: float = 1.0
+    input_tokens: int = 0
+    output_tokens: int = 0
+    cost_usd: float = 0.0
+
+
+@dataclass
+class UsageStats:
+    """Cumulative usage statistics"""
+    total_requests: int = 0
+    total_input_tokens: int = 0
+    total_output_tokens: int = 0
+    total_cost_usd: float = 0.0
+    
+    def add_request(self, input_tokens: int, output_tokens: int):
+        """Add a request to the stats"""
+        self.total_requests += 1
+        self.total_input_tokens += input_tokens
+        self.total_output_tokens += output_tokens
+        # Claude 3.5 Sonnet pricing: $3/M input, $15/M output
+        input_cost = (input_tokens / 1_000_000) * 3.0
+        output_cost = (output_tokens / 1_000_000) * 15.0
+        self.total_cost_usd += input_cost + output_cost
+        return input_cost + output_cost
+
+
+# Global usage tracker (resets on server restart)
+usage_stats = UsageStats()
 
 
 # System prompt for Claude - optimized for emotional understanding
@@ -179,6 +206,13 @@ class EnhancementService:
             
             enhanced_text = message.content[0].text.strip()
             
+            # Extract token usage from response
+            input_tokens = message.usage.input_tokens
+            output_tokens = message.usage.output_tokens
+            
+            # Track usage and calculate cost
+            request_cost = usage_stats.add_request(input_tokens, output_tokens)
+            
             # Clean up any extra quotes or formatting Claude might add
             if enhanced_text.startswith('"') and enhanced_text.endswith('"'):
                 enhanced_text = enhanced_text[1:-1]
@@ -192,7 +226,10 @@ class EnhancementService:
                 original_text=text,
                 enhanced_text=enhanced_text,
                 tags_used=tags_used,
-                confidence_score=1.0
+                confidence_score=1.0,
+                input_tokens=input_tokens,
+                output_tokens=output_tokens,
+                cost_usd=request_cost
             )
             
         except Exception as e:

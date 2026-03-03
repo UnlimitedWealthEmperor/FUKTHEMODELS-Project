@@ -66,6 +66,7 @@ class TTSRequest:
     style: float = 0.0
     use_speaker_boost: bool = True
     output_format: OutputFormat = OutputFormat.MP3_44100_128
+    language_code: Optional[str] = None  # ISO 639-1 language override
 
 
 @dataclass
@@ -281,6 +282,10 @@ class ElevenLabsService:
                 "use_speaker_boost": request.use_speaker_boost
             }
         }
+        
+        # Add language override if specified
+        if request.language_code:
+            body["language_code"] = request.language_code
         
         # Make request
         response = self.client.post(

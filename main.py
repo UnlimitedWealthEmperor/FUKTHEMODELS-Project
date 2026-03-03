@@ -31,7 +31,7 @@ import io
 
 # Import our services
 from services.elevenlabs_service import ElevenLabsService, TTSRequest, DialogueLine, DialogueRequest, OutputFormat
-from services.enhancement_service import EnhancementService, EnhancementResult
+from services.enhancement_service import EnhancementService, EnhancementResult, usage_stats
 from services.character_service import CharacterService, CharacterProfile, SceneState, AVAILABLE_MOODS, ENERGY_LEVELS
 
 
@@ -84,6 +84,7 @@ class TTSInput(BaseModel):
     similarity_boost: float = Field(default=0.75, ge=0, le=1, description="Similarity boost")
     style: float = Field(default=0, ge=0, le=1, description="Style exaggeration")
     output_format: str = Field(default="mp3_44100_128", description="Output audio format")
+    language_code: Optional[str] = Field(default=None, description="Language override (ISO 639-1 code)")
     # Enhancement options
     enhancement_mode: str = Field(
         default="none", 
@@ -131,6 +132,25 @@ class EnhanceResponse(BaseModel):
     enhanced_text: str
     tags_used: List[str]
     confidence_score: float
+    input_tokens: int = 0
+    output_tokens: int = 0
+    cost_usd: float = 0.0
+    cost_usd_x20: float = 0.0  # Client price (real cost × 20)
+    # Pre-formatted strings for display
+    cost_usd_formatted: str = "$0.000000"
+    cost_usd_x20_formatted: str = "$0.0000"
+
+
+class UsageStatsResponse(BaseModel):
+    """Usage statistics response"""
+    total_requests: int
+    total_input_tokens: int
+    total_output_tokens: int
+    total_cost_usd: float
+    total_cost_usd_x20: float  # Client price (real cost × 20)
+    # Pre-formatted strings for display
+    total_cost_usd_formatted: str = "$0.000000"
+    total_cost_usd_x20_formatted: str = "$0.0000"
 
 
 class VoiceInfo(BaseModel):
@@ -358,7 +378,8 @@ async def text_to_speech(input: TTSInput, background_tasks: BackgroundTasks):
         stability=input.stability,
         similarity_boost=input.similarity_boost,
         style=input.style,
-        output_format=output_format
+        output_format=output_format,
+        language_code=input.language_code
     )
     
     try:
@@ -415,7 +436,8 @@ async def text_to_speech_stream(input: TTSInput):
         stability=input.stability,
         similarity_boost=input.similarity_boost,
         style=input.style,
-        output_format=output_format
+        output_format=output_format,
+        language_code=input.language_code
     )
     
     def generate():
@@ -533,11 +555,42 @@ async def enhance_text(input: EnhanceInput):
         mood=input.mood if not input.character_id else None  # Use mood directly if no character
     )
     
+    # Calculate costs in backend
+    cost_x20 = result.cost_usd * 20
+    
     return EnhanceResponse(
         original_text=result.original_text,
         enhanced_text=result.enhanced_text,
         tags_used=result.tags_used,
-        confidence_score=result.confidence_score
+        confidence_score=result.confidence_score,
+        input_tokens=result.input_tokens,
+        output_tokens=result.output_tokens,
+        cost_usd=result.cost_usd,
+        cost_usd_x20=cost_x20,
+        cost_usd_formatted=f"${result.cost_usd:.6f}",
+        cost_usd_x20_formatted=f"${cost_x20:.4f}"
+    )
+
+
+@app.get("/usage", response_model=UsageStatsResponse)
+async def get_usage_stats():
+    """
+    Get cumulative usage statistics for AI enhancement.
+    Shows actual API cost and client price (×20 markup).
+    Resets when server restarts.
+    """
+    # Calculate all values in backend
+    total_cost = round(usage_stats.total_cost_usd, 6)
+    total_cost_x20 = round(usage_stats.total_cost_usd * 20, 4)
+    
+    return UsageStatsResponse(
+        total_requests=usage_stats.total_requests,
+        total_input_tokens=usage_stats.total_input_tokens,
+        total_output_tokens=usage_stats.total_output_tokens,
+        total_cost_usd=total_cost,
+        total_cost_usd_x20=total_cost_x20,
+        total_cost_usd_formatted=f"${total_cost:.6f}",
+        total_cost_usd_x20_formatted=f"${total_cost_x20:.4f}"
     )
 
 
