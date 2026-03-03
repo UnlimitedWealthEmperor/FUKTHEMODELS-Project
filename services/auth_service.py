@@ -27,6 +27,10 @@ except ImportError:
 class AuthService:
     """
     Simple authentication service with password protection
+    
+    Supports two modes:
+    1. Environment variable: Set FTKM_PASSWORD for Railway/cloud deployments
+    2. File-based: For local development, password stored in config/.auth
     """
     
     def __init__(self, config_dir: Path = None):
@@ -37,10 +41,13 @@ class AuthService:
         self.sessions: Dict[str, datetime] = {}  # token -> expiry
         self.session_duration = timedelta(hours=24)  # Sessions last 24 hours
         
+        # Check for environment variable password (Railway/cloud)
+        self.env_password = os.environ.get("FTKM_PASSWORD")
+        
     @property
     def is_setup(self) -> bool:
-        """Check if password has been set up"""
-        return self.auth_file.exists()
+        """Check if password has been set up (env var or file)"""
+        return self.env_password is not None or self.auth_file.exists()
     
     def _hash_password(self, password: str) -> str:
         """Hash a password securely"""
@@ -74,9 +81,14 @@ class AuthService:
         """
         Set up the initial password (only works if not already set up)
         
-        Returns True if successful, False if already set up
+        Note: When FTKM_PASSWORD env var is set, setup is not needed
+        Returns True if successful, False if already set up or using env var
         """
-        if self.is_setup:
+        # If env var is set, setup is not needed/allowed
+        if self.env_password is not None:
+            return False
+            
+        if self.auth_file.exists():
             return False
         
         auth_data = {
@@ -97,8 +109,13 @@ class AuthService:
         return True
     
     def verify_password(self, password: str) -> bool:
-        """Verify a password"""
-        if not self.is_setup:
+        """Verify a password against env var or stored hash"""
+        # Check environment variable first (Railway/cloud)
+        if self.env_password is not None:
+            return secrets.compare_digest(password, self.env_password)
+        
+        # Fall back to file-based verification
+        if not self.auth_file.exists():
             return False
         
         try:
