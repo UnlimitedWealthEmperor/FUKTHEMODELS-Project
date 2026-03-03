@@ -1,1 +1,7 @@
 .env
+
+# Playwright MCP debug files
+.playwright-mcp/
+
+# Local history
+history.json

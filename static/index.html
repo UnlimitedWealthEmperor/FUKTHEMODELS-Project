@@ -3,18 +3,51 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TTS Platform</title>
+    <title>FuckTheModels</title>
     <style>
+        /* ============================================
+           ElevenLabs-Inspired Theme
+           ============================================ */
+        
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        
         :root {
-            --bg-primary: #0f0f0f;
-            --bg-secondary: #1a1a1a;
-            --bg-tertiary: #252525;
+            /* Background colors - darker like ElevenLabs */
+            --bg-primary: #0a0a0a;
+            --bg-secondary: #141414;
+            --bg-tertiary: #1a1a1a;
+            --bg-card: #1f1f1f;
+            
+            /* Text colors */
             --text-primary: #ffffff;
-            --text-secondary: #a0a0a0;
-            --accent: #10a37f;
-            --accent-hover: #0d8a6c;
-            --border: #333333;
+            --text-secondary: #888888;
+            --text-muted: #666666;
+            
+            /* Borders */
+            --border: #2a2a2a;
+            --border-light: #333333;
+            
+            /* Accent colors */
+            --accent-purple: #a855f7;
+            --accent-purple-light: #c084fc;
+            --accent-purple-bg: rgba(168, 85, 247, 0.15);
+            --accent-green: #22c55e;
+            
+            /* Rainbow gradient for selected items */
+            --gradient-rainbow: linear-gradient(90deg, #06b6d4, #3b82f6, #8b5cf6, #d946ef, #ec4899);
+            
+            /* Button colors */
+            --btn-primary-bg: #ffffff;
+            --btn-primary-text: #000000;
+            --btn-secondary-bg: #1a1a1a;
+            --btn-secondary-border: #333333;
+            
+            /* Misc */
             --danger: #ef4444;
+            --radius-sm: 4px;
+            --radius-md: 8px;
+            --radius-lg: 12px;
+            --radius-xl: 20px;
         }
         
         * {
@@ -23,35 +56,47 @@
             box-sizing: border-box;
         }
         
+        html {
+            height: 100%;
+            overflow: hidden;
+        }
+        
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             background: var(--bg-primary);
             color: var(--text-primary);
-            min-height: 100vh;
+            height: 100vh;
+            font-size: 14px;
+            line-height: 1.5;
+            overflow: hidden;
         }
         
         /* Header */
         header {
             background: var(--bg-secondary);
             border-bottom: 1px solid var(--border);
-            padding: 1rem 2rem;
+            padding: 0.75rem 1.5rem;
             display: flex;
             justify-content: space-between;
             align-items: center;
         }
         
         .logo {
-            font-size: 1.5rem;
-            font-weight: 700;
-            color: var(--accent);
+            display: flex;
+            align-items: center;
+        }
+        
+        .logo svg {
+            height: 40px;
+            width: auto;
         }
         
         .cost-display {
             display: flex;
-            gap: 1.5rem;
+            gap: 1rem;
             padding: 0.5rem 1rem;
             background: var(--bg-tertiary);
-            border-radius: 8px;
+            border-radius: var(--radius-md);
             border: 1px solid var(--border);
         }
         
@@ -59,20 +104,20 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 0.25rem;
+            gap: 0.15rem;
         }
         
         .cost-label {
             font-size: 0.65rem;
-            color: var(--text-secondary);
+            color: var(--text-muted);
             text-transform: uppercase;
             letter-spacing: 0.05em;
         }
         
         .cost-value {
-            font-size: 1rem;
+            font-size: 0.95rem;
             font-weight: 600;
-            color: #22c55e;
+            color: var(--accent-green);
             font-family: 'SF Mono', 'Monaco', 'Consolas', monospace;
         }
         
@@ -91,89 +136,502 @@
             color: var(--text-primary);
         }
         
-        /* Main Layout */
+        /* Main Layout - 2 columns */
         .container {
             display: grid;
-            grid-template-columns: 300px 1fr 350px;
-            min-height: calc(100vh - 60px);
+            grid-template-columns: 1fr 380px;
+            height: calc(100vh - 60px);
+            overflow: hidden;
         }
         
-        /* Sidebar - Voices */
-        .sidebar {
-            background: var(--bg-secondary);
-            border-right: 1px solid var(--border);
-            padding: 1.5rem;
-            overflow-y: auto;
+        /* Settings/History Tabs */
+        .panel-tabs {
+            display: flex;
+            gap: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 1.25rem;
         }
         
-        .sidebar h2 {
-            font-size: 0.875rem;
+        .panel-tab {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            padding: 0;
+            position: relative;
+            transition: color 0.15s ease;
+        }
+        
+        .panel-tab:hover {
             color: var(--text-secondary);
-            margin-bottom: 1rem;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
         }
         
-        .search-box {
-            width: 100%;
+        .panel-tab.active {
+            color: var(--text-primary);
+        }
+        
+        .panel-tab.active::after {
+            content: '';
+            position: absolute;
+            bottom: -1rem;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: var(--text-primary);
+        }
+        
+        /* Voice Dropdown Selector */
+        .voice-selector-container {
+            margin-bottom: 1.5rem;
+        }
+        
+        .voice-selector-label {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            margin-bottom: 0.5rem;
+        }
+        
+        .voice-selector {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
             padding: 0.75rem 1rem;
             background: var(--bg-tertiary);
             border: 1px solid var(--border);
-            border-radius: 8px;
+            border-radius: var(--radius-md);
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+        
+        .voice-selector:hover {
+            border-color: var(--border-light);
+        }
+        
+        .voice-selector-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #06b6d4, #3b82f6);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: white;
+        }
+        
+        .voice-selector-info {
+            flex: 1;
+        }
+        
+        .voice-selector-name {
+            font-weight: 500;
+            font-size: 0.95rem;
+        }
+        
+        .voice-selector-chevron {
+            color: var(--text-muted);
+            font-size: 1.25rem;
+        }
+        
+        /* Voice Dropdown Menu */
+        .voice-dropdown {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            margin-top: 0.5rem;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            max-height: 400px;
+            overflow-y: auto;
+            z-index: 100;
+            display: none;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        }
+        
+        .voice-dropdown.open {
+            display: block;
+        }
+        
+        .voice-dropdown-search {
+            padding: 0.75rem;
+            border-bottom: 1px solid var(--border);
+            position: sticky;
+            top: 0;
+            background: var(--bg-secondary);
+        }
+        
+        .voice-dropdown-search input {
+            width: 100%;
+            padding: 0.6rem 0.75rem;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
             color: var(--text-primary);
-            font-size: 0.875rem;
+            font-size: 0.85rem;
+        }
+        
+        .voice-dropdown-search input:focus {
+            outline: none;
+            border-color: var(--border-light);
+        }
+        
+        .voice-dropdown-search input::placeholder {
+            color: var(--text-muted);
+        }
+        
+        .voice-dropdown-list {
+            padding: 0.5rem 0;
+        }
+        
+        .voice-dropdown-item {
+            padding: 0.75rem 1rem;
+            cursor: pointer;
+            transition: background 0.1s ease;
+            border-left: 3px solid transparent;
+        }
+        
+        .voice-dropdown-item:hover {
+            background: var(--bg-tertiary);
+        }
+        
+        .voice-dropdown-item.selected {
+            background: var(--bg-tertiary);
+            border-left-color: var(--accent-purple);
+        }
+        
+        .voice-dropdown-item-name {
+            font-weight: 500;
+            font-size: 0.9rem;
+            margin-bottom: 0.1rem;
+        }
+        
+        .voice-dropdown-item-category {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+        
+        .voice-selector-wrapper {
+            position: relative;
+        }
+        
+        /* History Panel (hidden by default) */
+        .history-panel {
+            display: none;
+        }
+        
+        .history-panel.active {
+            display: block;
+        }
+        
+        .history-empty {
+            color: var(--text-muted);
+            text-align: center;
+            padding: 2rem 1rem;
+            font-size: 0.9rem;
+        }
+        
+        /* History Search */
+        .history-search {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
             margin-bottom: 1rem;
         }
         
-        .search-box:focus {
-            outline: none;
-            border-color: var(--accent);
-        }
-        
-        .voice-list {
-            display: flex;
-            flex-direction: column;
-            gap: 0.5rem;
-        }
-        
-        .voice-item {
-            padding: 0.75rem 1rem;
+        .history-search input {
+            flex: 1;
+            padding: 0.6rem 0.75rem;
             background: var(--bg-tertiary);
-            border-radius: 8px;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            color: var(--text-primary);
+            font-size: 0.85rem;
+        }
+        
+        .history-search input:focus {
+            outline: none;
+            border-color: var(--border-light);
+        }
+        
+        .history-search input::placeholder {
+            color: var(--text-muted);
+        }
+        
+        /* History Action Buttons */
+        .history-actions {
+            display: flex;
+            gap: 0.35rem;
+        }
+        
+        .history-action-btn {
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            color: var(--text-muted);
             cursor: pointer;
-            transition: all 0.2s;
-            border: 2px solid transparent;
+            font-size: 1rem;
+            transition: all 0.15s ease;
         }
         
-        .voice-item:hover {
-            background: var(--bg-primary);
+        .history-action-btn:hover {
+            border-color: var(--border-light);
+            color: var(--text-primary);
         }
         
-        .voice-item.selected {
-            border-color: var(--accent);
+        .history-action-btn.active {
+            background: var(--text-primary);
+            border-color: var(--text-primary);
+            color: var(--bg-primary);
         }
         
-        .voice-name {
-            font-weight: 500;
-            margin-bottom: 0.25rem;
+        .history-action-btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
         }
         
-        .voice-category {
+        .history-filter-icon {
+            padding: 0.6rem;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            color: var(--text-muted);
+            cursor: pointer;
+            font-size: 1rem;
+        }
+        
+        .history-filter-icon:hover {
+            border-color: var(--border-light);
+            color: var(--text-primary);
+        }
+        
+        /* History Filters */
+        .history-filters {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+        }
+        
+        .filter-btn {
+            display: flex;
+            align-items: center;
+            gap: 0.35rem;
+            padding: 0.4rem 0.75rem;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-xl);
+            color: var(--text-secondary);
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+        
+        .filter-btn:hover {
+            border-color: var(--border-light);
+            color: var(--text-primary);
+        }
+        
+        .filter-btn.active {
+            background: var(--text-primary);
+            border-color: var(--text-primary);
+            color: var(--bg-primary);
+        }
+        
+        .filter-btn .plus {
+            font-size: 0.9rem;
+        }
+        
+        /* History Date Group */
+        .history-date-group {
+            padding: 0.5rem 0;
+            text-align: center;
+        }
+        
+        .history-date-label {
+            display: inline-block;
+            padding: 0.3rem 0.75rem;
+            background: var(--bg-tertiary);
+            border-radius: var(--radius-xl);
             font-size: 0.75rem;
             color: var(--text-secondary);
         }
         
-        /* Main Content */
-        .main-content {
-            padding: 2rem;
+        /* History List */
+        .history-list {
             display: flex;
             flex-direction: column;
+        }
+        
+        /* History Item */
+        .history-item {
+            padding: 0.875rem 0;
+            border-bottom: 1px solid var(--border);
+            cursor: pointer;
+            transition: background 0.1s ease;
+            display: flex;
+            align-items: flex-start;
+            gap: 0.75rem;
+        }
+        
+        .history-item:hover {
+            background: var(--bg-tertiary);
+            margin: 0 -1.25rem;
+            padding: 0.875rem 1.25rem;
+        }
+        
+        .history-item:last-child {
+            border-bottom: none;
+        }
+        
+        /* Selection checkbox */
+        .history-item-checkbox {
+            display: none;
+            width: 18px;
+            height: 18px;
+            min-width: 18px;
+            border: 2px solid var(--border-light);
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            margin-top: 2px;
+        }
+        
+        .history-item-checkbox.visible {
+            display: block;
+        }
+        
+        .history-item-checkbox.checked {
+            background: var(--accent-purple);
+            border-color: var(--accent-purple);
+        }
+        
+        .history-item-checkbox.checked::after {
+            content: '✓';
+            color: white;
+            font-size: 0.7rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+        }
+        
+        .history-item-content {
+            flex: 1;
+            min-width: 0;
+        }
+        
+        .history-item-text {
+            font-size: 0.9rem;
+            color: var(--text-primary);
+            margin-bottom: 0.35rem;
+            line-height: 1.4;
+            /* Truncate long text */
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        .history-item-meta {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+        
+        .history-item-avatar {
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #06b6d4, #3b82f6);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.55rem;
+            font-weight: 600;
+            color: white;
+        }
+        
+        .history-item-voice {
+            color: var(--text-secondary);
+        }
+        
+        .history-item-time {
+            color: var(--text-muted);
+        }
+        
+        .history-item-time::before {
+            content: '·';
+            margin-right: 0.5rem;
+        }
+        
+        /* Selection mode info bar */
+        .selection-info {
+            display: none;
+            padding: 0.5rem 0.75rem;
+            background: var(--accent-purple-bg);
+            border-radius: var(--radius-md);
+            margin-bottom: 1rem;
+            font-size: 0.85rem;
+            color: var(--accent-purple-light);
+        }
+        
+        .selection-info.visible {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .settings-content {
+            display: block;
+        }
+        
+        .settings-content.hidden {
+            display: none;
+        }
+        
+        /* Main Content */
+        .main-content {
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            background: var(--bg-primary);
+            height: calc(100vh - 60px);
+            overflow: hidden;
         }
         
         .editor-container {
             flex: 1;
             display: flex;
             flex-direction: column;
+            overflow: hidden;
+        }
+        
+        .editor-scroll-area {
+            flex: 1;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            min-height: 0;
+        }
+        
+        .editor-bottom-bar {
+            flex-shrink: 0;
+            padding-top: 0.75rem;
+            background: var(--bg-primary);
+            border-top: 1px solid var(--border);
+            margin-top: 0.75rem;
         }
         
         .editor-header {
@@ -184,7 +642,8 @@
         }
         
         .editor-header h1 {
-            font-size: 1.25rem;
+            font-size: 1.1rem;
+            font-weight: 600;
         }
         
         .mode-tabs {
@@ -196,59 +655,71 @@
             padding: 0.5rem 1rem;
             background: transparent;
             border: 1px solid var(--border);
-            border-radius: 6px;
+            border-radius: var(--radius-md);
             color: var(--text-secondary);
             cursor: pointer;
-            transition: all 0.2s;
+            transition: all 0.15s ease;
+            font-size: 0.85rem;
         }
         
         .mode-tab:hover {
-            border-color: var(--text-secondary);
+            border-color: var(--border-light);
+            color: var(--text-primary);
         }
         
         .mode-tab.active {
-            background: var(--accent);
-            border-color: var(--accent);
-            color: white;
+            background: var(--text-primary);
+            border-color: var(--text-primary);
+            color: var(--bg-primary);
         }
         
+        /* Speaker block styling */
         .text-editor {
             flex: 1;
-            min-height: 300px;
-            padding: 1.5rem;
+            min-height: 200px;
+            padding: 1.25rem;
             background: var(--bg-secondary);
             border: 1px solid var(--border);
-            border-radius: 12px;
+            border-radius: var(--radius-lg);
             color: var(--text-primary);
-            font-size: 1rem;
-            line-height: 1.6;
+            font-size: 0.95rem;
+            line-height: 1.7;
             resize: none;
             font-family: inherit;
+            overflow-y: auto;
         }
         
         .text-editor:focus {
             outline: none;
-            border-color: var(--accent);
+            border-color: var(--border-light);
         }
         
         .text-editor::placeholder {
-            color: var(--text-secondary);
+            color: var(--text-muted);
         }
         
-        /* Character Count */
+        /* Character Count - bottom bar style */
         .char-count {
             display: flex;
-            justify-content: space-between;
-            margin-top: 0.5rem;
-            font-size: 0.75rem;
-            color: var(--text-secondary);
+            justify-content: flex-end;
+            align-items: center;
+            gap: 1rem;
+            font-size: 0.8rem;
+            color: var(--text-muted);
         }
         
-        /* Action Buttons */
+        /* Action Buttons - ElevenLabs style */
         .actions {
             display: flex;
-            gap: 1rem;
-            margin-top: 1.5rem;
+            gap: 0.75rem;
+            justify-content: flex-end;
+            align-items: center;
+        }
+        
+        .bottom-bar-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
         
         button {
@@ -256,58 +727,65 @@
         }
         
         .btn {
-            padding: 0.875rem 1.5rem;
-            border-radius: 8px;
+            padding: 0.7rem 1.25rem;
+            border-radius: var(--radius-md);
             font-size: 0.875rem;
             font-weight: 500;
             cursor: pointer;
-            transition: all 0.2s;
+            transition: all 0.15s ease;
             border: none;
         }
         
+        /* Primary button - white like ElevenLabs "Generate speech" */
         .btn-primary {
-            background: var(--accent);
-            color: white;
+            background: var(--btn-primary-bg);
+            color: var(--btn-primary-text);
             flex: 1;
         }
         
         .btn-primary:hover {
-            background: var(--accent-hover);
+            background: #e5e5e5;
         }
         
         .btn-primary:disabled {
-            opacity: 0.5;
+            background: #ffffff;
+            color: #999999;
             cursor: not-allowed;
         }
         
+        /* Secondary button - dark with border like "Enhance" */
         .btn-secondary {
-            background: var(--bg-tertiary);
+            background: var(--btn-secondary-bg);
             color: var(--text-primary);
-            border: 1px solid var(--border);
+            border: 1px solid var(--btn-secondary-border);
         }
         
         .btn-secondary:hover {
-            background: var(--bg-secondary);
+            background: var(--bg-card);
+            border-color: var(--border-light);
         }
         
         /* Right Panel - Settings */
         .settings-panel {
             background: var(--bg-secondary);
             border-left: 1px solid var(--border);
-            padding: 1.5rem;
+            padding: 1.25rem;
             overflow-y: auto;
+            height: 100%;
+            max-height: calc(100vh - 60px);
         }
         
         .settings-panel h2 {
-            font-size: 0.875rem;
+            font-size: 0.75rem;
             color: var(--text-secondary);
-            margin-bottom: 1.5rem;
+            margin-bottom: 1.25rem;
             text-transform: uppercase;
             letter-spacing: 0.05em;
+            font-weight: 500;
         }
         
         .setting-group {
-            margin-bottom: 1.5rem;
+            margin-bottom: 1.25rem;
         }
         
         .setting-label {
@@ -318,18 +796,19 @@
         }
         
         .setting-label span {
-            font-size: 0.875rem;
+            font-size: 0.85rem;
         }
         
         .setting-value {
             font-size: 0.75rem;
-            color: var(--text-secondary);
+            color: var(--text-muted);
         }
         
+        /* Sliders - ElevenLabs style */
         input[type="range"] {
             width: 100%;
             height: 4px;
-            background: var(--bg-tertiary);
+            background: var(--border-light);
             border-radius: 2px;
             appearance: none;
             cursor: pointer;
@@ -339,31 +818,41 @@
             appearance: none;
             width: 16px;
             height: 16px;
-            background: var(--accent);
+            background: var(--text-primary);
             border-radius: 50%;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+        }
+        
+        input[type="range"]::-moz-range-thumb {
+            width: 16px;
+            height: 16px;
+            background: var(--text-primary);
+            border-radius: 50%;
+            border: none;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.3);
         }
         
         select {
             width: 100%;
-            padding: 0.75rem;
+            padding: 0.65rem 0.75rem;
             background: var(--bg-tertiary);
             border: 1px solid var(--border);
-            border-radius: 8px;
+            border-radius: var(--radius-md);
             color: var(--text-primary);
-            font-size: 0.875rem;
+            font-size: 0.85rem;
             cursor: pointer;
         }
         
         select:focus {
             outline: none;
-            border-color: var(--accent);
+            border-color: var(--border-light);
         }
         
         /* Enhancement Section */
         .enhancement-section {
             border-top: 1px solid var(--border);
-            padding-top: 1.5rem;
-            margin-top: 1rem;
+            padding-top: 1.25rem;
+            margin-top: 0.75rem;
         }
         
         .mode-selector {
@@ -376,33 +865,37 @@
             padding: 0.75rem;
             background: var(--bg-tertiary);
             border: 2px solid transparent;
-            border-radius: 8px;
+            border-radius: var(--radius-md);
             cursor: pointer;
-            transition: all 0.2s;
+            transition: all 0.15s ease;
         }
         
         .mode-option:hover {
-            background: var(--bg-primary);
+            background: var(--bg-card);
         }
         
+        /* Rainbow gradient border for selected mode */
         .mode-option.selected {
-            border-color: var(--accent);
-            background: rgba(16, 163, 127, 0.1);
+            background: var(--bg-tertiary);
+            border: 2px solid transparent;
+            background-image: linear-gradient(var(--bg-tertiary), var(--bg-tertiary)), var(--gradient-rainbow);
+            background-origin: border-box;
+            background-clip: padding-box, border-box;
         }
         
         .mode-title {
             font-weight: 600;
-            font-size: 0.875rem;
-            margin-bottom: 0.25rem;
+            font-size: 0.85rem;
+            margin-bottom: 0.2rem;
         }
         
         .mode-desc {
             font-size: 0.7rem;
-            color: var(--text-secondary);
+            color: var(--text-muted);
         }
         
         .mode-option.selected .mode-title {
-            color: var(--accent);
+            color: var(--text-primary);
         }
         
         .toggle-container {
@@ -412,18 +905,19 @@
             margin-bottom: 1rem;
         }
         
+        /* Toggle switch - ElevenLabs style */
         .toggle {
             position: relative;
             width: 44px;
             height: 24px;
-            background: var(--bg-tertiary);
+            background: var(--border-light);
             border-radius: 12px;
             cursor: pointer;
             transition: background 0.2s;
         }
         
         .toggle.active {
-            background: var(--accent);
+            background: var(--accent-green);
         }
         
         .toggle::after {
@@ -436,55 +930,61 @@
             background: white;
             border-radius: 50%;
             transition: transform 0.2s;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.2);
         }
         
         .toggle.active::after {
             transform: translateX(20px);
         }
         
-        /* Audio Tags Reference */
+        /* Audio Tags Reference - Purple theme like ElevenLabs */
         .tag-reference {
             background: var(--bg-primary);
-            border-radius: 8px;
+            border-radius: var(--radius-md);
             padding: 1rem;
             margin-top: 1rem;
         }
         
         .tag-reference h3 {
-            font-size: 0.75rem;
-            color: var(--text-secondary);
+            font-size: 0.7rem;
+            color: var(--text-muted);
             margin-bottom: 0.75rem;
             text-transform: uppercase;
+            font-weight: 500;
         }
         
         .tag-list {
             display: flex;
             flex-wrap: wrap;
-            gap: 0.5rem;
+            gap: 0.4rem;
         }
         
+        /* Tags styled like ElevenLabs - purple badges */
         .tag {
-            padding: 0.25rem 0.5rem;
-            background: var(--bg-tertiary);
-            border-radius: 4px;
+            padding: 0.2rem 0.5rem;
+            background: var(--accent-purple-bg);
+            border-radius: var(--radius-sm);
             font-size: 0.75rem;
-            color: var(--accent);
+            color: var(--accent-purple-light);
             cursor: pointer;
-            transition: background 0.2s;
+            transition: all 0.15s ease;
+            font-weight: 500;
         }
         
         .tag:hover {
-            background: var(--accent);
+            background: var(--accent-purple);
             color: white;
         }
         
         /* Audio Player */
         .audio-player {
             background: var(--bg-tertiary);
-            border-radius: 8px;
+            border-radius: var(--radius-md);
             padding: 1rem;
-            margin-top: 1rem;
+            margin-top: 0.75rem;
             display: none;
+            border: 1px solid var(--border);
+            flex-shrink: 0;
         }
         
         .audio-player.visible {
@@ -501,7 +1001,9 @@
             align-items: center;
             justify-content: center;
             gap: 0.5rem;
-            color: var(--text-secondary);
+            color: var(--text-muted);
+            flex-shrink: 0;
+            padding: 0.75rem 0;
         }
         
         .loading.visible {
@@ -509,10 +1011,10 @@
         }
         
         .spinner {
-            width: 20px;
-            height: 20px;
-            border: 2px solid var(--border);
-            border-top-color: var(--accent);
+            width: 18px;
+            height: 18px;
+            border: 2px solid var(--border-light);
+            border-top-color: var(--text-primary);
             border-radius: 50%;
             animation: spin 0.8s linear infinite;
         }
@@ -524,17 +1026,18 @@
         /* Toast Notifications */
         .toast {
             position: fixed;
-            bottom: 2rem;
-            right: 2rem;
-            padding: 1rem 1.5rem;
+            bottom: 1.5rem;
+            right: 1.5rem;
+            padding: 0.875rem 1.25rem;
             background: var(--bg-secondary);
             border: 1px solid var(--border);
-            border-radius: 8px;
+            border-radius: var(--radius-md);
             display: none;
             align-items: center;
             gap: 0.75rem;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
             z-index: 1000;
+            font-size: 0.875rem;
         }
         
         .toast.visible {
@@ -545,21 +1048,79 @@
             border-color: var(--danger);
         }
         
+        /* Engine display with rainbow gradient border */
+        .engine-display {
+            padding: 0.75rem;
+            background: var(--bg-tertiary);
+            border: 2px solid transparent;
+            border-radius: var(--radius-md);
+            color: var(--text-primary);
+            font-weight: 500;
+            background-image: linear-gradient(var(--bg-tertiary), var(--bg-tertiary)), var(--gradient-rainbow);
+            background-origin: border-box;
+            background-clip: padding-box, border-box;
+        }
+        
         /* Responsive */
-        @media (max-width: 1200px) {
+        @media (max-width: 900px) {
             .container {
                 grid-template-columns: 1fr;
             }
             
-            .sidebar, .settings-panel {
+            .settings-panel {
                 display: none;
             }
+        }
+        
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: var(--bg-primary);
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: var(--border-light);
+            border-radius: 4px;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--text-muted);
         }
     </style>
 </head>
 <body>
     <header>
-        <div class="logo">TTS Platform</div>
+        <div class="logo">
+            <svg width="200" height="40" viewBox="0 0 200 40" xmlns="http://www.w3.org/2000/svg">
+                <!-- Flame Icon -->
+                <defs>
+                    <linearGradient id="flameGrad" x1="0%" y1="100%" x2="0%" y2="0%">
+                        <stop offset="0%" style="stop-color:#ff4500"/>
+                        <stop offset="50%" style="stop-color:#ff6b35"/>
+                        <stop offset="100%" style="stop-color:#ffd700"/>
+                    </linearGradient>
+                    <linearGradient id="textGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                        <stop offset="0%" style="stop-color:#ff6b35"/>
+                        <stop offset="100%" style="stop-color:#ffd700"/>
+                    </linearGradient>
+                </defs>
+                <!-- Fire flames -->
+                <g transform="translate(2, 2)">
+                    <path d="M18 36C18 36 8 28 8 20C8 14 12 10 14 8C14 12 16 14 18 14C20 14 22 12 22 8C24 10 28 14 28 20C28 28 18 36 18 36Z" fill="url(#flameGrad)">
+                        <animate attributeName="d" dur="0.8s" repeatCount="indefinite" values="M18 36C18 36 8 28 8 20C8 14 12 10 14 8C14 12 16 14 18 14C20 14 22 12 22 8C24 10 28 14 28 20C28 28 18 36 18 36Z;M18 36C18 36 6 26 6 18C6 12 11 8 13 6C13 11 15 13 18 13C21 13 23 11 23 6C25 8 30 12 30 18C30 26 18 36 18 36Z;M18 36C18 36 8 28 8 20C8 14 12 10 14 8C14 12 16 14 18 14C20 14 22 12 22 8C24 10 28 14 28 20C28 28 18 36 18 36Z"/>
+                    </path>
+                    <!-- Inner flame -->
+                    <path d="M18 34C18 34 12 28 12 22C12 18 15 16 16 14C16 17 17 18 18 18C19 18 20 17 20 14C21 16 24 18 24 22C24 28 18 34 18 34Z" fill="#ffdd44" opacity="0.8">
+                        <animate attributeName="opacity" dur="0.5s" repeatCount="indefinite" values="0.8;1;0.8"/>
+                    </path>
+                </g>
+                <!-- Text -->
+                <text x="42" y="28" font-family="'Inter', 'SF Pro Display', -apple-system, sans-serif" font-size="20" font-weight="800" fill="url(#textGrad)" letter-spacing="-0.5">FuckTheModels</text>
+            </svg>
+        </div>
         <div class="cost-display" id="costDisplay">
             <div class="cost-item">
                 <span class="cost-label">AI Usage</span>
@@ -574,18 +1135,6 @@
     </header>
 
     <div class="container">
-        <!-- Voices Sidebar -->
-        <aside class="sidebar">
-            <h2>Voices</h2>
-            <input type="text" class="search-box" id="voiceSearch" placeholder="Search voices...">
-            <div class="voice-list" id="voiceList">
-                <div class="loading visible" id="voicesLoading">
-                    <div class="spinner"></div>
-                    <span>Loading voices...</span>
-                </div>
-            </div>
-        </aside>
-
         <!-- Main Editor -->
         <main class="main-content">
             <div class="editor-container">
@@ -597,30 +1146,35 @@
                     </div>
                 </div>
                 
-                <textarea 
-                    class="text-editor" 
-                    id="textInput"
-                    placeholder="Enter text here... Use [audio tags] for emotions and effects.
+                <div class="editor-scroll-area">
+                    <textarea 
+                        class="text-editor" 
+                        id="textInput"
+                        placeholder="Enter text here... Use [audio tags] for emotions and effects.
 
 Examples:
 [sighs] I never thought it would come to this.
 [excited] This is amazing news!
 [whispering] Don't tell anyone, but...
 [laughs] That's hilarious!"
-                ></textarea>
-                
-                <div class="char-count">
-                    <span id="charCount">0 characters</span>
-                    <span>Max: 5,000</span>
+                    ></textarea>
                 </div>
                 
-                <div class="actions">
-                    <button class="btn btn-secondary" id="enhanceBtn">
-                        ✨ Enhance
-                    </button>
-                    <button class="btn btn-primary" id="generateBtn" disabled>
-                        Generate Speech
-                    </button>
+                <div class="editor-bottom-bar">
+                    <div class="bottom-bar-row">
+                        <div class="char-count">
+                            <span id="charCount">0 characters</span>
+                            <span>/ 5,000</span>
+                        </div>
+                        <div class="actions">
+                            <button class="btn btn-secondary" id="enhanceBtn">
+                                ✨ Enhance
+                            </button>
+                            <button class="btn btn-primary" id="generateBtn" disabled>
+                                Generate Speech
+                            </button>
+                        </div>
+                    </div>
                 </div>
                 
                 <div class="loading" id="generateLoading">
@@ -636,16 +1190,81 @@ Examples:
 
         <!-- Settings Panel -->
         <aside class="settings-panel">
-            <h2>Voice Settings</h2>
+            <!-- Settings/History Tabs -->
+            <div class="panel-tabs">
+                <button class="panel-tab active" data-panel="settings">Settings</button>
+                <button class="panel-tab" data-panel="history">History</button>
+            </div>
             
-            <div class="setting-group">
-                <div class="setting-label">
-                    <span>Engine</span>
+            <!-- History Panel -->
+            <div class="history-panel" id="historyPanel">
+                <!-- Search + Actions -->
+                <div class="history-search">
+                    <input type="text" id="historySearch" placeholder="Search history...">
+                    <div class="history-actions">
+                        <button class="history-action-btn" id="historyDownloadBtn" title="Download selected" disabled>⬇</button>
+                        <button class="history-action-btn" id="historyDeleteBtn" title="Delete selected" disabled>🗑</button>
+                        <button class="history-action-btn" id="historySelectAllBtn" title="Select all">✓✓</button>
+                        <button class="history-action-btn" id="historyManageBtn" title="Manage history">☰</button>
+                    </div>
                 </div>
-                <div style="padding: 0.75rem; background: var(--bg-tertiary); border: 1px solid var(--border); border-radius: 8px; color: var(--accent); font-weight: 500;">
-                    SymphoGear V1
+                
+                <!-- Selection Info -->
+                <div class="selection-info" id="selectionInfo">
+                    <span id="selectionCount">0 selected</span>
+                    <button style="background:none;border:none;color:var(--accent-purple-light);cursor:pointer;font-size:0.85rem;" id="clearSelectionBtn">Clear</button>
+                </div>
+                
+                <!-- Filters -->
+                <div class="history-filters" id="historyFilters">
+                    <button class="filter-btn" data-filter="voice"><span class="plus">+</span> Voice</button>
+                    <button class="filter-btn" data-filter="model"><span class="plus">+</span> Model</button>
+                    <button class="filter-btn" data-filter="date"><span class="plus">+</span> Date</button>
+                </div>
+                
+                <!-- History List -->
+                <div class="history-list" id="historyList">
+                    <div class="history-empty" id="historyEmpty">
+                        No generation history yet
+                    </div>
                 </div>
             </div>
+            
+            <!-- Settings Content -->
+            <div class="settings-content" id="settingsContent">
+                <!-- Voice Selector Dropdown -->
+                <div class="voice-selector-container">
+                    <div class="voice-selector-label">Voice</div>
+                    <div class="voice-selector-wrapper">
+                        <div class="voice-selector" id="voiceSelector">
+                            <div class="voice-selector-avatar" id="voiceAvatar">?</div>
+                            <div class="voice-selector-info">
+                                <div class="voice-selector-name" id="selectedVoiceName">Select a voice</div>
+                            </div>
+                            <div class="voice-selector-chevron">›</div>
+                        </div>
+                        <div class="voice-dropdown" id="voiceDropdown">
+                            <div class="voice-dropdown-search">
+                                <input type="text" id="voiceSearch" placeholder="Search voices...">
+                            </div>
+                            <div class="voice-dropdown-list" id="voiceDropdownList">
+                                <div class="loading visible" id="voicesLoading">
+                                    <div class="spinner"></div>
+                                    <span>Loading voices...</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="setting-group">
+                    <div class="setting-label">
+                        <span>Engine</span>
+                    </div>
+                    <div class="engine-display">
+                        SymphoGear V1
+                    </div>
+                </div>
             
             <div class="setting-group">
                 <div class="setting-label">
@@ -830,6 +1449,7 @@ Examples:
                     <span class="tag" data-tag="[gasps]">[gasps]</span>
                 </div>
             </div>
+            </div><!-- End settings-content -->
         </aside>
     </div>
 
@@ -997,10 +1617,16 @@ Examples:
         let selectedVoice = null;
         let voices = [];
         let enhancementMode = 'manual';  // 'manual' or 'ai_enhance'
+        let historyItems = [];
+        let historyFilters = { voice: null, model: null, date: null };
         
         // DOM Elements
-        const voiceList = document.getElementById('voiceList');
+        const voiceDropdownList = document.getElementById('voiceDropdownList');
+        const voiceDropdown = document.getElementById('voiceDropdown');
+        const voiceSelector = document.getElementById('voiceSelector');
         const voiceSearch = document.getElementById('voiceSearch');
+        const selectedVoiceName = document.getElementById('selectedVoiceName');
+        const voiceAvatar = document.getElementById('voiceAvatar');
         const textInput = document.getElementById('textInput');
         const charCount = document.getElementById('charCount');
         const generateBtn = document.getElementById('generateBtn');
@@ -1012,6 +1638,24 @@ Examples:
         const modeSelector = document.getElementById('modeSelector');
         const smartOptions = document.getElementById('smartOptions');
         const tagList = document.getElementById('tagList');
+        const panelTabs = document.querySelectorAll('.panel-tab');
+        const settingsContent = document.getElementById('settingsContent');
+        const historyPanel = document.getElementById('historyPanel');
+        const historyList = document.getElementById('historyList');
+        const historyEmpty = document.getElementById('historyEmpty');
+        const historySearch = document.getElementById('historySearch');
+        const historyFilterBtns = document.querySelectorAll('.filter-btn');
+        const historyDownloadBtn = document.getElementById('historyDownloadBtn');
+        const historyDeleteBtn = document.getElementById('historyDeleteBtn');
+        const historySelectAllBtn = document.getElementById('historySelectAllBtn');
+        const historyManageBtn = document.getElementById('historyManageBtn');
+        const selectionInfo = document.getElementById('selectionInfo');
+        const selectionCount = document.getElementById('selectionCount');
+        const clearSelectionBtn = document.getElementById('clearSelectionBtn');
+        
+        // Selection state
+        let selectionMode = false;
+        let selectedItems = new Set();
         
         // Sliders
         const stabilitySlider = document.getElementById('stability');
@@ -1035,6 +1679,7 @@ Examples:
         document.addEventListener('DOMContentLoaded', () => {
             loadVoices();
             loadCharacters();
+            loadHistory();
             setupEventListeners();
             updateCostDisplay();
             // Refresh cost every 30 seconds
@@ -1079,33 +1724,385 @@ Examples:
             }
         }
         
-        // Render Voices
+        // Load History
+        async function loadHistory() {
+            try {
+                // Build query params from filters
+                const params = new URLSearchParams();
+                if (historyFilters.voice) params.set('voice', historyFilters.voice);
+                if (historyFilters.model) params.set('model', historyFilters.model);
+                if (historyFilters.date) params.set('date', historyFilters.date);
+                
+                const url = `${API_BASE}/history${params.toString() ? '?' + params.toString() : ''}`;
+                const response = await fetch(url);
+                if (!response.ok) return;
+                
+                historyItems = await response.json();
+                renderHistory();
+            } catch (error) {
+                console.log('Could not load history:', error);
+            }
+        }
+        
+        // Render History
+        function renderHistory(searchQuery = '') {
+            let items = historyItems;
+            
+            // Apply search filter
+            if (searchQuery) {
+                const query = searchQuery.toLowerCase();
+                items = items.filter(item => 
+                    item.text.toLowerCase().includes(query) ||
+                    item.voice_name.toLowerCase().includes(query)
+                );
+            }
+            
+            if (items.length === 0) {
+                historyList.innerHTML = `<div class="history-empty">
+                    ${searchQuery ? 'No matching history' : 'No generation history yet'}
+                </div>`;
+                return;
+            }
+            
+            // Group by date
+            const today = new Date().toDateString();
+            const yesterday = new Date(Date.now() - 86400000).toDateString();
+            let currentGroup = null;
+            let html = '';
+            
+            items.forEach(item => {
+                const itemDate = new Date(item.timestamp).toDateString();
+                let groupLabel = null;
+                
+                if (itemDate !== currentGroup) {
+                    currentGroup = itemDate;
+                    if (itemDate === today) {
+                        groupLabel = 'Today';
+                    } else if (itemDate === yesterday) {
+                        groupLabel = 'Yesterday';
+                    } else {
+                        groupLabel = new Date(item.timestamp).toLocaleDateString('en-US', { 
+                            month: 'short', 
+                            day: 'numeric' 
+                        });
+                    }
+                    html += `<div class="history-date-group">
+                        <span class="history-date-label">${groupLabel}</span>
+                    </div>`;
+                }
+                
+                const avatarLetter = item.voice_name.charAt(0).toUpperCase();
+                const isSelected = selectedItems.has(item.id);
+                const checkboxClass = selectionMode ? 'visible' : '';
+                const checkedClass = isSelected ? 'checked' : '';
+                
+                html += `<div class="history-item" data-history-id="${item.id}">
+                    <div class="history-item-checkbox ${checkboxClass} ${checkedClass}" data-id="${item.id}"></div>
+                    <div class="history-item-content">
+                        <div class="history-item-text">${escapeHtml(item.text_preview)}</div>
+                        <div class="history-item-meta">
+                            <div class="history-item-avatar">${avatarLetter}</div>
+                            <span class="history-item-voice">${escapeHtml(item.voice_name)}</span>
+                            <span class="history-item-time">${item.timestamp_relative}</span>
+                        </div>
+                    </div>
+                </div>`;
+            });
+            
+            historyList.innerHTML = html;
+            
+            // Add click handlers
+            historyList.querySelectorAll('.history-item').forEach(item => {
+                const checkbox = item.querySelector('.history-item-checkbox');
+                const historyId = item.dataset.historyId;
+                
+                // Checkbox click
+                checkbox.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    toggleSelection(historyId);
+                });
+                
+                // Item click - play or toggle selection
+                item.addEventListener('click', () => {
+                    if (selectionMode) {
+                        toggleSelection(historyId);
+                    } else {
+                        playHistoryItem(historyId);
+                    }
+                });
+            });
+        }
+        
+        // Toggle selection
+        function toggleSelection(itemId) {
+            if (selectedItems.has(itemId)) {
+                selectedItems.delete(itemId);
+            } else {
+                selectedItems.add(itemId);
+            }
+            updateSelectionUI();
+            renderHistory(historySearch.value);
+        }
+        
+        // Update selection UI
+        function updateSelectionUI() {
+            const count = selectedItems.size;
+            selectionCount.textContent = `${count} selected`;
+            
+            if (count > 0) {
+                selectionInfo.classList.add('visible');
+                historyDownloadBtn.disabled = false;
+                historyDeleteBtn.disabled = false;
+            } else {
+                selectionInfo.classList.remove('visible');
+                historyDownloadBtn.disabled = true;
+                historyDeleteBtn.disabled = true;
+            }
+        }
+        
+        // Toggle selection mode
+        function toggleSelectionMode() {
+            selectionMode = !selectionMode;
+            historyManageBtn.classList.toggle('active', selectionMode);
+            
+            if (!selectionMode) {
+                selectedItems.clear();
+                updateSelectionUI();
+            }
+            
+            renderHistory(historySearch.value);
+        }
+        
+        // Select all items
+        function selectAllItems() {
+            if (!selectionMode) {
+                selectionMode = true;
+                historyManageBtn.classList.add('active');
+            }
+            
+            historyItems.forEach(item => selectedItems.add(item.id));
+            updateSelectionUI();
+            renderHistory(historySearch.value);
+        }
+        
+        // Clear selection
+        function clearSelection() {
+            selectedItems.clear();
+            updateSelectionUI();
+            renderHistory(historySearch.value);
+        }
+        
+        // Bulk delete
+        async function bulkDelete() {
+            if (selectedItems.size === 0) return;
+            
+            if (!confirm(`Delete ${selectedItems.size} item(s)?`)) return;
+            
+            const deletePromises = Array.from(selectedItems).map(id =>
+                fetch(`${API_BASE}/history/${id}`, { method: 'DELETE' })
+            );
+            
+            try {
+                await Promise.all(deletePromises);
+                showToast(`Deleted ${selectedItems.size} item(s)`);
+                selectedItems.clear();
+                selectionMode = false;
+                historyManageBtn.classList.remove('active');
+                updateSelectionUI();
+                loadHistory();
+            } catch (error) {
+                showToast('Failed to delete some items', true);
+            }
+        }
+        
+        // Bulk download
+        async function bulkDownload() {
+            if (selectedItems.size === 0) return;
+            
+            // Download each selected item
+            for (const id of selectedItems) {
+                const item = historyItems.find(h => h.id === id);
+                if (!item) continue;
+                
+                const link = document.createElement('a');
+                link.href = `${API_BASE}/history/${id}/audio`;
+                link.download = `${item.voice_name}_${id}.mp3`;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                
+                // Small delay between downloads
+                await new Promise(r => setTimeout(r, 300));
+            }
+            
+            showToast(`Downloaded ${selectedItems.size} file(s)`);
+        }
+        
+        // Play History Item
+        async function playHistoryItem(historyId) {
+            const item = historyItems.find(h => h.id === historyId);
+            if (!item) return;
+            
+            // Play the audio
+            audioElement.src = `${API_BASE}/history/${historyId}/audio`;
+            audioPlayer.classList.add('visible');
+            audioElement.play();
+            
+            // Optionally load the text into the editor
+            textInput.value = item.text;
+            charCount.textContent = `${item.text.length} characters`;
+            updateGenerateButton();
+        }
+        
+        // Escape HTML for safe rendering
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+        
+        // Render Voices - dropdown list
         function renderVoices(voicesToRender) {
             const html = voicesToRender.map(voice => `
-                <div class="voice-item ${selectedVoice?.voice_id === voice.voice_id ? 'selected' : ''}" 
+                <div class="voice-dropdown-item ${selectedVoice?.voice_id === voice.voice_id ? 'selected' : ''}" 
                      data-voice-id="${voice.voice_id}">
-                    <div class="voice-name">${voice.name}</div>
-                    <div class="voice-category">${voice.category || 'General'}</div>
+                    <div class="voice-dropdown-item-name">${voice.name}</div>
+                    <div class="voice-dropdown-item-category">${voice.category || 'General'}</div>
                 </div>
             `).join('');
             
-            voiceList.innerHTML = html || '<div style="color: var(--text-secondary)">No voices found</div>';
+            voiceDropdownList.innerHTML = html || '<div style="color: var(--text-secondary); padding: 1rem;">No voices found</div>';
             
             // Add click handlers
-            voiceList.querySelectorAll('.voice-item').forEach(item => {
-                item.addEventListener('click', () => selectVoice(item.dataset.voiceId));
+            voiceDropdownList.querySelectorAll('.voice-dropdown-item').forEach(item => {
+                item.addEventListener('click', () => {
+                    selectVoice(item.dataset.voiceId);
+                    voiceDropdown.classList.remove('open');
+                });
             });
         }
         
         // Select Voice
         function selectVoice(voiceId) {
             selectedVoice = voices.find(v => v.voice_id === voiceId);
+            
+            // Update dropdown selector display
+            if (selectedVoice) {
+                selectedVoiceName.textContent = selectedVoice.name;
+                // Get first letter for avatar
+                voiceAvatar.textContent = selectedVoice.name.charAt(0).toUpperCase();
+            } else {
+                selectedVoiceName.textContent = 'Select a voice';
+                voiceAvatar.textContent = '?';
+            }
+            
             renderVoices(voices);
             updateGenerateButton();
         }
         
         // Setup Event Listeners
         function setupEventListeners() {
+            // Voice selector dropdown toggle
+            voiceSelector.addEventListener('click', (e) => {
+                e.stopPropagation();
+                voiceDropdown.classList.toggle('open');
+                if (voiceDropdown.classList.contains('open')) {
+                    voiceSearch.focus();
+                }
+            });
+            
+            // Close dropdown when clicking outside
+            document.addEventListener('click', (e) => {
+                if (!voiceDropdown.contains(e.target) && !voiceSelector.contains(e.target)) {
+                    voiceDropdown.classList.remove('open');
+                }
+            });
+            
+            // Panel tabs (Settings/History)
+            panelTabs.forEach(tab => {
+                tab.addEventListener('click', () => {
+                    panelTabs.forEach(t => t.classList.remove('active'));
+                    tab.classList.add('active');
+                    
+                    const panel = tab.dataset.panel;
+                    if (panel === 'settings') {
+                        settingsContent.classList.remove('hidden');
+                        historyPanel.classList.remove('active');
+                    } else {
+                        settingsContent.classList.add('hidden');
+                        historyPanel.classList.add('active');
+                        // Refresh history when switching to History tab
+                        loadHistory();
+                    }
+                });
+            });
+            
+            // History search
+            historySearch.addEventListener('input', (e) => {
+                renderHistory(e.target.value);
+            });
+            
+            // History action buttons
+            historyManageBtn.addEventListener('click', toggleSelectionMode);
+            historySelectAllBtn.addEventListener('click', selectAllItems);
+            historyDeleteBtn.addEventListener('click', bulkDelete);
+            historyDownloadBtn.addEventListener('click', bulkDownload);
+            clearSelectionBtn.addEventListener('click', clearSelection);
+            
+            // History filter buttons
+            historyFilterBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const filterType = btn.dataset.filter;
+                    
+                    // Toggle filter
+                    if (btn.classList.contains('active')) {
+                        btn.classList.remove('active');
+                        historyFilters[filterType] = null;
+                    } else {
+                        // For date, cycle through: today -> week -> month -> off
+                        if (filterType === 'date') {
+                            if (!historyFilters.date) {
+                                historyFilters.date = 'today';
+                                btn.textContent = '✓ Today';
+                            } else if (historyFilters.date === 'today') {
+                                historyFilters.date = 'week';
+                                btn.textContent = '✓ This Week';
+                            } else if (historyFilters.date === 'week') {
+                                historyFilters.date = 'month';
+                                btn.textContent = '✓ This Month';
+                            } else {
+                                historyFilters.date = null;
+                                btn.textContent = '+ Date';
+                                btn.classList.remove('active');
+                                loadHistory();
+                                return;
+                            }
+                            btn.classList.add('active');
+                        } else if (filterType === 'voice' && selectedVoice) {
+                            // Use currently selected voice as filter
+                            historyFilters.voice = selectedVoice.name;
+                            btn.textContent = `✓ ${selectedVoice.name}`;
+                            btn.classList.add('active');
+                        } else if (filterType === 'model') {
+                            historyFilters.model = 'eleven_v3';
+                            btn.textContent = '✓ V3';
+                            btn.classList.add('active');
+                        } else {
+                            return; // No voice selected
+                        }
+                    }
+                    
+                    // Reset button text when deactivating
+                    if (!btn.classList.contains('active')) {
+                        if (filterType === 'voice') btn.innerHTML = '<span class="plus">+</span> Voice';
+                        if (filterType === 'model') btn.innerHTML = '<span class="plus">+</span> Model';
+                        if (filterType === 'date') btn.innerHTML = '<span class="plus">+</span> Date';
+                    }
+                    
+                    loadHistory();
+                });
+            });
+            
             // Text input
             textInput.addEventListener('input', () => {
                 const count = textInput.value.length;
@@ -1113,7 +2110,7 @@ Examples:
                 updateGenerateButton();
             });
             
-            // Voice search
+            // Voice search - filter voices
             voiceSearch.addEventListener('input', (e) => {
                 const query = e.target.value.toLowerCase();
                 const filtered = voices.filter(v => 
@@ -1121,6 +2118,11 @@ Examples:
                     (v.category || '').toLowerCase().includes(query)
                 );
                 renderVoices(filtered);
+            });
+            
+            // Prevent dropdown close when clicking search
+            voiceSearch.addEventListener('click', (e) => {
+                e.stopPropagation();
             });
             
             // Generate button
@@ -1192,7 +2194,7 @@ Examples:
         // Generate Speech
         async function generateSpeech() {
             if (!selectedVoice) {
-                showToast('Please select a voice from the sidebar first', true);
+                showToast('Please select a voice first', true);
                 return;
             }
             if (!textInput.value.trim()) {
@@ -1234,6 +2236,9 @@ Examples:
                 
                 audioElement.src = url;
                 audioPlayer.classList.add('visible');
+                
+                // Refresh history
+                loadHistory();
                 
             } catch (error) {
                 showToast(error.message, true);

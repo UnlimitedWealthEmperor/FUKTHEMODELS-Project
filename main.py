@@ -33,6 +33,8 @@ import io
 from services.elevenlabs_service import ElevenLabsService, TTSRequest, DialogueLine, DialogueRequest, OutputFormat
 from services.enhancement_service import EnhancementService, EnhancementResult, usage_stats
 from services.character_service import CharacterService, CharacterProfile, SceneState, AVAILABLE_MOODS, ENERGY_LEVELS
+from services.storage_service import StorageService, get_storage_service
+from services.sheets_service import get_sheets_service
 
 
 # ============================================================================
@@ -40,7 +42,7 @@ from services.character_service import CharacterService, CharacterProfile, Scene
 # ============================================================================
 
 app = FastAPI(
-    title="TTS Platform API",
+    title="FuckTheModels API",
     description="Text-to-Speech platform with ElevenLabs integration and smart enhancement",
     version="1.0.0"
 )
@@ -58,6 +60,8 @@ app.add_middleware(
 elevenlabs_service: Optional[ElevenLabsService] = None
 enhancement_service: Optional[EnhancementService] = None
 character_service: Optional[CharacterService] = None
+storage_service: Optional[StorageService] = None
+sheets_service = None  # Google Sheets database service
 
 # Paths
 BASE_DIR = Path(__file__).parent
@@ -65,6 +69,11 @@ CONFIG_DIR = BASE_DIR / "config"
 DOCS_DIR = BASE_DIR / "docs"
 OUTPUT_DIR = BASE_DIR / "output"
 STATIC_DIR = BASE_DIR / "static"
+GENERATED_DIR = BASE_DIR / "generated"  # Audio file storage
+HISTORY_FILE = BASE_DIR / "history.json"  # History persistence
+
+# History storage (in-memory, persisted to JSON)
+generation_history: List[Dict[str, Any]] = []
 
 # Mount static files
 if STATIC_DIR.exists():
@@ -170,6 +179,20 @@ class ModelInfo(BaseModel):
     description: str
     languages: List[str]
     max_characters: Optional[int]
+
+
+class HistoryItem(BaseModel):
+    """History item for generation tracking"""
+    id: str
+    text: str
+    text_preview: str  # Truncated for display
+    voice_id: str
+    voice_name: str
+    model_id: str
+    timestamp: str
+    timestamp_relative: str  # "3 hours ago"
+    audio_filename: str
+    character_count: int
     
     
 # ============================================================================
@@ -179,10 +202,39 @@ class ModelInfo(BaseModel):
 @app.on_event("startup")
 async def startup_event():
     """Initialize services on startup"""
-    global elevenlabs_service, enhancement_service, character_service
+    global elevenlabs_service, enhancement_service, character_service, storage_service, sheets_service, generation_history
     
     # Create output directory
     OUTPUT_DIR.mkdir(exist_ok=True)
+    
+    # Create generated audio directory (for local fallback)
+    GENERATED_DIR.mkdir(exist_ok=True)
+    
+    # Initialize Storage service (GCS or local fallback)
+    storage_service = StorageService(local_fallback_dir=GENERATED_DIR)
+    
+    # Initialize Google Sheets database service
+    sheets_service = get_sheets_service()
+    if sheets_service.is_available:
+        await sheets_service.ensure_headers()
+        # Load history from Sheets
+        generation_history = await sheets_service.get_all_entries()
+        # Update relative timestamps
+        for item in generation_history:
+            item["timestamp_relative"] = get_relative_time(item.get("timestamp", ""))
+            item["text_preview"] = item["text"][:60] + "..." if len(item.get("text", "")) > 60 else item.get("text", "")
+        print(f"✓ Google Sheets database initialized ({len(generation_history)} history items)")
+    else:
+        # Fallback to local JSON file
+        if HISTORY_FILE.exists():
+            try:
+                with open(HISTORY_FILE, 'r') as f:
+                    generation_history = json.load(f)
+                print(f"✓ Loaded {len(generation_history)} history items from local file")
+            except Exception as e:
+                print(f"⚠ Could not load history: {e}")
+                generation_history = []
+        print("⚠ Using local JSON for history (set GOOGLE_SHEETS_ID for cloud persistence)")
     
     # Initialize ElevenLabs service
     api_key = os.getenv("ELEVENLABS_API_KEY")
@@ -213,6 +265,247 @@ async def shutdown_event():
 
 
 # ============================================================================
+# History Helpers
+# ============================================================================
+
+def get_relative_time(timestamp_str: str) -> str:
+    """Convert ISO timestamp to relative time string"""
+    try:
+        timestamp = datetime.fromisoformat(timestamp_str.replace('Z', '+00:00'))
+        now = datetime.now(timestamp.tzinfo) if timestamp.tzinfo else datetime.now()
+        diff = now - timestamp
+        
+        seconds = diff.total_seconds()
+        if seconds < 60:
+            return f"{int(seconds)} seconds ago"
+        elif seconds < 3600:
+            minutes = int(seconds / 60)
+            return f"{minutes} minute{'s' if minutes != 1 else ''} ago"
+        elif seconds < 86400:
+            hours = int(seconds / 3600)
+            return f"{hours} hour{'s' if hours != 1 else ''} ago"
+        else:
+            days = int(seconds / 86400)
+            return f"{days} day{'s' if days != 1 else ''} ago"
+    except:
+        return "just now"
+
+
+def save_history():
+    """Persist history to JSON file"""
+    try:
+        with open(HISTORY_FILE, 'w') as f:
+            json.dump(generation_history, f, indent=2)
+    except Exception as e:
+        print(f"⚠ Could not save history: {e}")
+
+
+async def add_to_history(
+    text: str,
+    voice_id: str,
+    voice_name: str,
+    model_id: str,
+    audio_data: bytes,
+    character_count: int,
+    language_code: Optional[str] = None
+) -> Dict[str, Any]:
+    """Add a new item to generation history"""
+    global generation_history
+    
+    # Generate unique ID and filename
+    item_id = uuid.uuid4().hex[:12]
+    timestamp = datetime.now().isoformat()
+    audio_filename = f"gen_{item_id}.mp3"
+    
+    # Save audio file using storage service (GCS or local)
+    if storage_service:
+        storage_service.save_audio(audio_data, audio_filename)
+    else:
+        # Fallback to direct local save
+        audio_path = GENERATED_DIR / audio_filename
+        with open(audio_path, 'wb') as f:
+            f.write(audio_data)
+    
+    # Create history item for in-memory storage
+    history_item = {
+        "id": item_id,
+        "text": text,
+        "text_preview": text[:60] + "..." if len(text) > 60 else text,
+        "voice_id": voice_id,
+        "voice_name": voice_name,
+        "model_id": model_id,
+        "timestamp": timestamp,
+        "timestamp_relative": get_relative_time(timestamp),
+        "audio_filename": audio_filename,
+        "character_count": character_count,
+        "storage_type": storage_service.storage_type if storage_service else "local"
+    }
+    
+    # Save to Google Sheets database
+    if sheets_service and sheets_service.is_available:
+        sheets_entry = {
+            "id": item_id,
+            "text": text,
+            "voice_id": voice_id,
+            "voice_name": voice_name,
+            "model": model_id,
+            "language": language_code or "",
+            "characters": character_count,
+            "cost": round(character_count * 0.00003, 6),  # Approximate cost
+            "timestamp": timestamp,
+            "audio_path": audio_filename
+        }
+        await sheets_service.add_entry(sheets_entry)
+    
+    # Add to beginning of list (most recent first)
+    generation_history.insert(0, history_item)
+    
+    # Keep only last 100 items in memory
+    if len(generation_history) > 100:
+        generation_history = generation_history[:100]
+    
+    # Also persist to local JSON as backup
+    save_history()
+    
+    return history_item
+
+
+# ============================================================================
+# History Endpoints
+# ============================================================================
+
+@app.get("/history")
+async def get_history(
+    search: Optional[str] = Query(None, description="Search text"),
+    voice: Optional[str] = Query(None, description="Filter by voice name"),
+    model: Optional[str] = Query(None, description="Filter by model"),
+    date: Optional[str] = Query(None, description="Filter by date: today, week, month"),
+    limit: int = Query(50, description="Max items to return")
+):
+    """Get generation history with optional filters"""
+    global generation_history
+    
+    # Update relative timestamps
+    for item in generation_history:
+        item["timestamp_relative"] = get_relative_time(item["timestamp"])
+    
+    filtered = generation_history.copy()
+    
+    # Apply search filter
+    if search:
+        search_lower = search.lower()
+        filtered = [
+            item for item in filtered 
+            if search_lower in item["text"].lower() or 
+               search_lower in item["voice_name"].lower()
+        ]
+    
+    # Apply voice filter
+    if voice:
+        voice_lower = voice.lower()
+        filtered = [
+            item for item in filtered 
+            if voice_lower in item["voice_name"].lower()
+        ]
+    
+    # Apply model filter
+    if model:
+        filtered = [
+            item for item in filtered 
+            if model.lower() in item["model_id"].lower()
+        ]
+    
+    # Apply date filter
+    if date:
+        now = datetime.now()
+        filtered_by_date = []
+        for item in filtered:
+            try:
+                item_date = datetime.fromisoformat(item["timestamp"].replace('Z', '+00:00'))
+                if item_date.tzinfo:
+                    item_date = item_date.replace(tzinfo=None)
+                
+                if date == "today":
+                    if item_date.date() == now.date():
+                        filtered_by_date.append(item)
+                elif date == "week":
+                    if (now - item_date).days <= 7:
+                        filtered_by_date.append(item)
+                elif date == "month":
+                    if (now - item_date).days <= 30:
+                        filtered_by_date.append(item)
+                else:
+                    filtered_by_date.append(item)
+            except:
+                filtered_by_date.append(item)
+        filtered = filtered_by_date
+    
+    return filtered[:limit]
+
+
+@app.get("/history/{item_id}/audio")
+async def get_history_audio(item_id: str):
+    """Get audio file for a history item"""
+    # Find the item
+    item = next((h for h in generation_history if h["id"] == item_id), None)
+    if not item:
+        raise HTTPException(status_code=404, detail="History item not found")
+    
+    filename = item["audio_filename"]
+    
+    # Try to get from storage service
+    if storage_service:
+        audio_data = storage_service.get_audio(filename)
+        if audio_data:
+            return StreamingResponse(
+                io.BytesIO(audio_data),
+                media_type="audio/mpeg",
+                headers={"Content-Disposition": f"attachment; filename={filename}"}
+            )
+    
+    # Fallback to local file
+    audio_path = GENERATED_DIR / filename
+    if audio_path.exists():
+        return FileResponse(
+            audio_path,
+            media_type="audio/mpeg",
+            filename=filename
+        )
+    
+    raise HTTPException(status_code=404, detail="Audio file not found")
+
+
+@app.delete("/history/{item_id}")
+async def delete_history_item(item_id: str):
+    """Delete a history item"""
+    global generation_history
+    
+    # Find and remove the item
+    item = next((h for h in generation_history if h["id"] == item_id), None)
+    if not item:
+        raise HTTPException(status_code=404, detail="History item not found")
+    
+    # Delete audio file using storage service
+    filename = item.get("audio_filename", "")
+    if storage_service and filename:
+        storage_service.delete_audio(filename)
+    else:
+        audio_path = GENERATED_DIR / filename
+        if audio_path.exists():
+            audio_path.unlink()
+    
+    # Delete from Google Sheets database
+    if sheets_service and sheets_service.is_available:
+        await sheets_service.delete_entry(item_id)
+    
+    # Remove from in-memory list
+    generation_history = [h for h in generation_history if h["id"] != item_id]
+    save_history()
+    
+    return {"status": "deleted", "id": item_id}
+
+
+# ============================================================================
 # Health & Info Endpoints
 # ============================================================================
 
@@ -222,7 +515,7 @@ async def root():
     index_path = STATIC_DIR / "index.html"
     if index_path.exists():
         return FileResponse(index_path)
-    return HTMLResponse("<h1>TTS Platform API</h1><p>Frontend not found. API is running.</p>")
+    return HTMLResponse("<h1>FuckTheModels API</h1><p>Frontend not found. API is running.</p>")
 
 
 @app.get("/api")
@@ -230,7 +523,7 @@ async def api_info():
     """API info endpoint"""
     return {
         "status": "ok",
-        "service": "TTS Platform API",
+        "service": "FuckTheModels API",
         "version": "1.0.0",
         "elevenlabs_configured": elevenlabs_service is not None
     }
@@ -387,12 +680,33 @@ async def text_to_speech(input: TTSInput, background_tasks: BackgroundTasks):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
     
+    # Get voice name for history
+    voice_name = "Unknown Voice"
+    try:
+        voice = elevenlabs_service.get_voice(input.voice_id)
+        if voice:
+            voice_name = voice.name
+    except:
+        pass
+    
+    # Save to history
+    history_item = await add_to_history(
+        text=input.text,
+        voice_id=input.voice_id,
+        voice_name=voice_name,
+        model_id=input.model_id,
+        audio_data=response.audio_data,
+        character_count=response.character_count,
+        language_code=input.language_code
+    )
+    
     # Return audio as streaming response
     headers = {
         "Content-Disposition": f"attachment; filename=speech_{uuid.uuid4().hex[:8]}.mp3",
         "X-Character-Count": str(response.character_count),
         "X-Request-ID": response.request_id or "",
-        "X-Enhancement-Mode": input.enhancement_mode
+        "X-Enhancement-Mode": input.enhancement_mode,
+        "X-History-ID": history_item["id"]  # Include history ID in response
     }
     
     # Include enhanced text in header if smart enhancement was used

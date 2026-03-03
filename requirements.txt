@@ -18,6 +18,13 @@ python-dotenv==1.0.0
 openai==1.10.0
 anthropic==0.18.0
 
+# Cloud Storage
+google-cloud-storage==2.14.0
+
+# Google Sheets Database
+google-api-python-client==2.111.0
+google-auth==2.27.0
+
 # Audio Processing (optional - for local audio manipulation)
 # pydub==0.25.1
 
